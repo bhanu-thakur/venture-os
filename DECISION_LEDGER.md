@@ -1,0 +1,10 @@
+# DECISION LEDGER
+
+Significant architectural, strategic, or venture decisions are recorded here with their rationale so future changes can be evaluated against the original assumptions.
+
+## Log
+* **Undated (pre-2026-06-29) — Implemented Stateless Architecture:** Decided to make the repository the single source of truth and use the AI as a stateless processor. Rationale: Eliminates the risk of losing context if chat history is cleared or AI models are switched.
+* **2026-06-29 — Core-OS-first sequencing:** Build the Core OS (PRODUCT, ROADMAP, CHANGELOG, ASSUMPTIONS, LESSONS_LEARNED) before expanding Venture 001. Rationale: treat Venture OS as the product and Venture 001 as its proving ground; establish the permanent operating system before venture-specific operational assets.
+* **2026-06-29 — Adopted Venture States lifecycle:** Replaced the coarse "Active" status with a 9-state lifecycle (Idea → Research → Validation → Prototype → Execution → Revenue → Scale → Maintenance → Archived). Rationale: state dictates appropriate work and the evidence bar; advancement requires evidence, ideally a cleared payment.
+* **2026-06-29 — Established Core Primitives + Single Responsibility:** Promoted Founder, Reality, AI Reasoning Engine, Ventures, Knowledge, Assets, and Core Engines to first-class primitives, each with one home and one single responsibility. Rationale: enables compounding and cross-venture scale while preventing architectural drift. Core Engines admitted only under the Extraction Rule (a process must be proven at least twice before it is abstracted into an engine).
+* **2026-06-29 — Froze PRODUCT.md v1.0:** Locked the product spec after a formal design review. Rationale: stabilize the foundational definition; modify only if future execution demonstrates a structural weakness.
