@@ -1,8 +1,8 @@
 # TECHNICAL ARCHITECTURE
 
 **Version:** 2.0
-**Status:** Active (authoritative technical specification)
-**Supersedes:** v1.0 (post Architecture Design Review — layered redesign)
+**Status:** LOCKED — Frozen at v2.0 (2026-06-29)
+**Supersedes:** v1.0 (post Architecture Design Review — layered redesign + ownership/reconstructability pass)
 **Governs:** How Venture OS is implemented as software. `PRODUCT.md` defines *what* the system is; this document defines *how it runs*.
 **Canonical design system:** `card-atlas-design-system.html` ("Card Atlas") — consumed verbatim, never redesigned here.
 **Decision record:** technical decisions are logged as ADRs in `ARCHITECTURE_DECISIONS.md`; strategic/venture decisions in `DECISION_LEDGER.md`.
@@ -17,7 +17,7 @@ Venture OS is a **repository-driven, AI-reasoned operating system** with an offl
 
 The foundational distinction — and the correction at the heart of v2.0:
 
-> **The repository is NOT a database.** It is the **authoritative, version-controlled source of truth**. It holds the Knowledge Layer (Markdown) and the Domain Layer (JSON). The application **derives disposable runtime state** (caches, routes, view models) from repository contents. Runtime state is temporary; the repository is permanent. Reload = truth.
+> **The repository is NOT a database — it is durable memory.** It is the **authoritative, version-controlled source of truth**, holding the Knowledge Layer (Markdown) and the Domain Layer (JSON). It is **reconstructable** (the whole system can be rebuilt from it) and **portable** (plain files, any host). The application **derives disposable runtime state** (caches, routes, view models, `index.json`) from repository contents — and can always regenerate it. Runtime state is temporary; the repository is permanent. Reload = truth.
 
 Principles, in priority order:
 
@@ -30,6 +30,22 @@ Principles, in priority order:
 
 > **Four Costs:** reduces **Building** (no backend/infra), **Thinking** (one source of truth), **Deciding** (no lock-in).
 
+### 1.1 Ownership Model
+
+Every concern has exactly one owner. Nothing important is owned by two things at once.
+
+| Owner | Owns |
+|---|---|
+| **Repository** | Durable memory — the permanent record |
+| **Knowledge Layer** | Human-readable knowledge (Markdown) |
+| **Domain Layer** | Structured business entities (JSON) |
+| **Application Layer** | Runtime presentation (rendering, routing, offline) |
+| **AI Reasoning Engine** | Reasoning only — never state |
+| **Founder** | Decisions and execution |
+| **Reality** | Validation (what is actually true) |
+
+> **Why explicit ownership:** it prevents the most common architectural rot — two parts of a system disagreeing about who is authoritative. The AI Reasoning Engine in particular **owns no state**: it proposes, the repository records, Reality validates. **Four Costs:** reduces **Thinking**, **Deciding**.
+
 ## 2. THE FIVE LAYERS
 
 Venture OS is organized into five layers. Each has a single concern; they communicate only through the repository.
@@ -38,7 +54,7 @@ Venture OS is organized into five layers. Each has a single concern; they commun
 |---|---|---|---|
 | **Knowledge** | Durable understanding, rules, doctrine | Markdown | Knowledge |
 | **Domain** | Structured first-class entities of the business | JSON | Ventures, Assets |
-| **Application** | The PWA: routing, rendering, UI, offline | HTML/CSS/JS | (the interface) |
+| **Application** | Transform Knowledge + Domain objects into an interactive operating system | HTML/CSS/JS | (the runtime) |
 | **Reasoning** | Reading, proposing, authoring, syncing | AI Reasoning Engine + git | AI Reasoning Engine |
 | **Execution** | The real world: founder, clients, revenue | Reality | Founder, Reality |
 
@@ -111,13 +127,13 @@ The structured, first-class **entities** of the business — represented as **JS
 Not every entity gets its own store at v1. Most live **embedded** in `venture.json`; separate files appear only when an entity is referenced across ventures (e.g., shared Assets). Avoid premature normalization.
 
 ### 5.3 The index
-`index.json` (repo root) is the application's map — an aggregated, derived view linking Knowledge docs and Domain objects for navigation and Venture-State display. It is a **convenience projection of the source of truth**, not a second source.
+`index.json` (repo root) is the application's map — an aggregated, derived view linking Knowledge docs and Domain objects for navigation and Venture-State display. It is a **convenience projection of the source of truth**, not a second source: **disposable, and regenerable from repository contents at any time.**
 
 > **Why JSON domain objects:** they give the app and the AI a precise contract for entities with state, without a backend. **Trade-off:** `index.json` and embedded objects can drift from prose (debt item §12). **Four Costs:** reduces **Thinking**, **Building**.
 
 ## 6. APPLICATION LAYER
 
-The PWA — the interface that renders the repository.
+**The runtime responsible for transforming Knowledge and Domain objects into an interactive operating system.** Venture OS is an *application*, not a documentation website: it reads the repository and presents a navigable, offline-capable OS for running ventures.
 
 ### 6.1 Technology stack
 Vanilla **HTML + ES modules**; **Card Atlas CSS verbatim**; self-hosted **Fraunces/Inter/JetBrains Mono** (offline); one vendored MIT Markdown parser (e.g. `marked`) in `assets/vendor/`. No framework.
@@ -133,6 +149,8 @@ Client-side **hash routing** (`#/`, `#/doc/<path>`, `#/venture/<id>`). GitHub Pa
 
 ### 6.4 Design System Integration (Card Atlas)
 Binding rules: copy the `<style>` block + icon sprite **verbatim**; **tokens only** (no new hex/px); **re-theme by variable** — v1 adopts the canonical default theme (`--primary:#1E5945`); **relative links only** (works under `/venture-os/`). Token bindings: PWA `theme_color`=`--primary`, `background_color`=`--bg`; content types map to category accents `--c1…--c6`. Compatibility-only adaptations (self-host fonts; keep `color-mix()`) are **not** visual changes.
+
+**Design system independence.** Card Atlas is an **implementation dependency of the Application Layer only.** Replacing it — re-theming, restyling, or swapping it entirely — changes **nothing** in the `CONSTITUTION.md`, `PRODUCT.md`, the Domain Model, or the Repository. Only presentation changes. By design, the design system is the most replaceable part of Venture OS.
 
 ### 6.5 Component mapping
 Home → `.hero`+`.stats`+`.cardgrid`; Venture → `.tile`(live)/`.tile.lock`(Idea/Archived); Venture State → `.pill` or `.track/.seg`; document → `.card`; metrics → `.minigrid/.cell`; nav → `.topbar/.brand/.nav`; callouts → `.note`.
@@ -200,6 +218,22 @@ venture-os/
 
 The repository is the **authoritative store**; the running app holds only derived, disposable state. Folders under `/docs/*` are created **only when first needed** (no placeholders).
 
+### 9.1 Reconstructability & Failure Recovery
+
+Venture OS must survive the loss of everything **except the repository**. Because the repository is durable memory and the single source of truth, the entire system is reconstructable from it alone:
+
+| If this is lost / changed | Recovery |
+|---|---|
+| **Chat history** | Irrelevant — the AI Reasoning Engine boots from `START_HERE.md`; nothing authoritative lived in chat. |
+| **The AI model / vendor** | Any capable AI Reasoning Engine reads the same repository and resumes (vendor-neutral, ADR-0007). |
+| **Hosting / GitHub Pages** | The static files deploy to any host; nothing depends on Pages internals. |
+| **The PWA (rewritten or deleted)** | The app is derived — rebuild it from this spec; Knowledge + Domain are untouched. |
+| **`index.json` / derived files** | Regenerated from repository contents. |
+
+The only irreplaceable asset is the repository itself (mitigated by git history and remotes). Everything else is derived and rebuildable.
+
+> **Four Costs:** reduces **Deciding** (no catastrophic lock-in) and **Building** (recovery is rebuild-from-source, not archaeology).
+
 ## 10. SCALABILITY
 
 Client rendering + a JSON index are comfortable into the hundreds of documents. Beyond that: move index generation to build-time (a GitHub Action) and paginate the cardgrid. Portfolio scale: filter the home grid by Venture State, lock non-active tiles to protect focus. GitHub Pages soft limits (~1 GB repo, ~100 GB/mo bandwidth) are generous. Known ceilings: no relational queries, no full-text search in v1.
@@ -264,7 +298,7 @@ No step introduces a backend or a framework.
 
 ## 16. ARCHITECTURE REVIEW VERDICT
 
-This v2.0 was produced by a formal design review (CPO / Chief Systems Architect / Principal SWE / Staff Platform Engineer). It corrects the repository-vs-database error, imposes five-layer separation, defines a domain model, makes the compounding loop explicit, and adds the maintenance scaffolding (ADRs, technical debt, SemVer) a decade-scale system needs — while removing nice-to-haves. **Verdict: appropriately minimal and structurally sound.** The only non-trivial code remains the contained Markdown renderer. No backend, no framework, and no premature infrastructure are justified at this stage.
+Produced and refined through formal design reviews. **Verdict: appropriately minimal and structurally sound** — five-layer separation, explicit ownership and reconstructability, a domain model, and decade-scale maintenance scaffolding (ADRs, technical debt, SemVer), with no backend, no framework, and no premature infrastructure. The only non-trivial code is the contained Markdown renderer. **Frozen at v2.0.**
 
 ---
 

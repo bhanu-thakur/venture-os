@@ -61,3 +61,15 @@
 **Context:** Technical decisions get superseded and target engineers; strategic decisions do not share that lifecycle.
 **Decision:** Record technical decisions here (immutable, numbered, with status); keep strategic/venture decisions in `DECISION_LEDGER.md`.
 **Consequences:** Cleaner audit trail; two ledgers to maintain (boundary defined in TECHNICAL_ARCHITECTURE §14).
+
+## ADR-0010 — Reconstructability: the repository is durable memory
+**Status:** Accepted (2026-06-29)
+**Context:** A stateless OS must survive loss of chat history, AI vendor changes, host changes, and rewrites of the app.
+**Decision:** Guarantee that the entire system is reconstructable from the repository alone. The repository is durable memory and the single source of truth; the AI Reasoning Engine, the app, the host, and all derived files (e.g., `index.json`) are replaceable and rebuildable.
+**Consequences:** No catastrophic lock-in; the only irreplaceable asset is the repository (protected by git history + remotes). Recovery is rebuild-from-source, not archaeology.
+
+## ADR-0011 — Design system is a replaceable Application-Layer dependency
+**Status:** Accepted (2026-06-29)
+**Context:** Product and presentation must be cleanly separable so the OS is not coupled to one visual style.
+**Decision:** Card Atlas is an implementation dependency of the Application Layer only. Replacing or re-theming it changes nothing in the Constitution, Product, Domain Model, or Repository — only presentation.
+**Consequences:** The design system is the most replaceable part of the system; visual evolution carries no risk to knowledge, domain, or doctrine.

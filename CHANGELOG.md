@@ -7,6 +7,10 @@
 
 ---
 
+## 2026-06-29 (architecture freeze)
+* **TECHNICAL_ARCHITECTURE.md v2.0 — FROZEN.** Final refinement pass: added an explicit **Ownership Model** (§1.1), reframed the Application Layer as the runtime that transforms Knowledge + Domain into an interactive OS (not a docs website), strengthened the repository as **durable memory / reconstructable / portable** with `index.json` declared disposable, added **Reconstructability & Failure Recovery** (§9.1), and made **design-system independence** explicit (§6.4). Trimmed the review verdict. (See ADR-0010, ADR-0011.)
+* **ARCHITECTURE_DECISIONS.md** — added ADR-0010 (reconstructability) and ADR-0011 (design system is a replaceable dependency).
+
 ## 2026-06-29 (architecture review)
 * **TECHNICAL_ARCHITECTURE.md v1.0 → v2.0** after a formal Architecture Design Review. Restructured around five explicit layers (Knowledge, Domain, Application, Reasoning, Execution); corrected "repository is the database" → repository is the source of truth, app derives runtime state; added a Domain Model (Venture, Project, Client, Opportunity, Asset, Skill, Lesson, Framework, Decision); made the Compounding Loop explicit; generalized the AI Reasoning Engine (vendor-neutral); added Known Technical Debt and SemVer; removed nice-to-haves. (See `ARCHITECTURE_DECISIONS.md`.)
 * **ARCHITECTURE_DECISIONS.md created** — technical ADRs (ADR-0001…0009), distinct from the strategic `DECISION_LEDGER.md`.
