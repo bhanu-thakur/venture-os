@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "nav": [
+    { "title": "Start Here", "path": "START_HERE.md", "type": "core", "accent": "c1" },
+    { "title": "Constitution", "path": "CONSTITUTION.md", "type": "core", "accent": "c1" },
+    { "title": "Product", "path": "PRODUCT.md", "type": "core", "accent": "c2" },
+    { "title": "Roadmap", "path": "ROADMAP.md", "type": "core", "accent": "c3" },
+    { "title": "Technical Architecture", "path": "TECHNICAL_ARCHITECTURE.md", "type": "core", "accent": "c4" },
+    { "title": "Architecture Decisions", "path": "ARCHITECTURE_DECISIONS.md", "type": "core", "accent": "c6" },
+    { "title": "Decision Ledger", "path": "DECISION_LEDGER.md", "type": "core", "accent": "c5" },
+    { "title": "Changelog", "path": "CHANGELOG.md", "type": "core", "accent": "c3" }
+  ],
+  "ventures": []
+}

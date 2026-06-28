@@ -73,3 +73,15 @@
 **Context:** Product and presentation must be cleanly separable so the OS is not coupled to one visual style.
 **Decision:** Card Atlas is an implementation dependency of the Application Layer only. Replacing or re-theming it changes nothing in the Constitution, Product, Domain Model, or Repository — only presentation.
 **Consequences:** The design system is the most replaceable part of the system; visual evolution carries no risk to knowledge, domain, or doctrine.
+
+## ADR-0012 — Phase 0 flat root file layout (deployment-tooling constraint)
+**Status:** Accepted (2026-06-29) — implementation decision
+**Context:** Phase 0 is deployed by the AI Reasoning Engine committing through the GitHub web UI. That mechanism uploads files to a single folder and cannot create subdirectories or place binary files into them; no credentialed git client is available in the build environment.
+**Decision:** Place all Phase 0 application files (`index.html`, `app.js`, `sw.js`, `manifest.webmanifest`, `index.json`, `.nojekyll`, `marked.min.js`, `icon-192.png`, `icon-512.png`) at the repository **root**, instead of the `assets/{fonts,icons,vendor}/` structure in TECHNICAL_ARCHITECTURE §3. The frozen architecture is **not** edited; this is an implementation deviation recorded here.
+**Consequences:** Works with web-UI commits today; root is slightly cluttered. **Pay-down trigger:** when a credentialed git client / push is available, restructure into the `assets/` layout (relative paths already make this a low-risk move).
+
+## ADR-0013 — Phase 0 font delivery: canonical CDN link + service-worker cache
+**Status:** Accepted (2026-06-29) — implementation decision
+**Context:** TECHNICAL_ARCHITECTURE §6.1 specifies self-hosted woff2 fonts for offline. Card Atlas (canonical, not to be redesigned) ships a Google Fonts `<link>` in its `<head>`; obtaining/committing binary font files via the web-UI mechanism is impractical in Phase 0.
+**Decision:** Keep the Card Atlas Google Fonts `<link>` verbatim and have the service worker runtime-cache `fonts.googleapis.com`/`fonts.gstatic.com` (cache-first). Offline rendering uses cached fonts after first load, falling back to the design system's system-font stack before then.
+**Consequences:** Fully offline-capable after first visit, with the canonical typography; first-ever load requires network for exact fonts. **Pay-down trigger:** self-host woff2 (and enable a strict `'self'` CSP) once a git client can commit binaries into `assets/fonts/`.

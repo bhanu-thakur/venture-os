@@ -7,6 +7,10 @@
 
 ---
 
+## 2026-06-29 (Phase 0 — foundation shell)
+* **PWA foundation shell implemented** (Implementation Roadmap step 1): `index.html` (Card Atlas integrated verbatim), `app.js` (hash routing + repository-driven Markdown rendering via vendored `marked`), `sw.js` (offline: cache-first shell, network-first index, SWR docs), `manifest.webmanifest`, `index.json`, `.nojekyll`, `marked.min.js`, and PWA icons. No features beyond the shell.
+* **Implementation ADRs:** ADR-0012 (flat root layout due to web-UI commit tooling) and ADR-0013 (Phase 0 font delivery via CDN link + SW cache). The frozen architecture was not modified.
+
 ## 2026-06-29 (architecture freeze)
 * **TECHNICAL_ARCHITECTURE.md v2.0 — FROZEN.** Final refinement pass: added an explicit **Ownership Model** (§1.1), reframed the Application Layer as the runtime that transforms Knowledge + Domain into an interactive OS (not a docs website), strengthened the repository as **durable memory / reconstructable / portable** with `index.json` declared disposable, added **Reconstructability & Failure Recovery** (§9.1), and made **design-system independence** explicit (§6.4). Trimmed the review verdict. (See ADR-0010, ADR-0011.)
 * **ARCHITECTURE_DECISIONS.md** — added ADR-0010 (reconstructability) and ADR-0011 (design system is a replaceable dependency).
