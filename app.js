@@ -59,6 +59,7 @@ async function renderMission(idx) {
   // working-layer state
   const t = todayKey();
   const captures = LS.get('vos:captures', []);
+  const pipeCount = LS.get('vos:pipeline', []).length;
   const wonToday = captures.some((c) => c.date === t);
   const allChecks = LS.get('vos:checks', {});
   const checks = Object.assign({ act: false, reach: false }, allChecks[t] || {});
@@ -106,6 +107,7 @@ async function renderMission(idx) {
       </section>
 
       <div class="launchpads">
+        <a class="launch" href="#/pipeline">${ic('cash')} Pipeline${pipeCount ? ` · ${pipeCount}` : ''}</a>
         <a class="launch" href="https://web.whatsapp.com/" target="_blank" rel="noopener">${ic('arrow')} Message on WhatsApp</a>
         <a class="launch" href="${research}" target="_blank" rel="noopener">${ic('compass')} Research references</a>
       </div>
@@ -128,6 +130,50 @@ async function renderMission(idx) {
 
   document.title = 'Venture OS';
   window.scrollTo(0, 0);
+}
+
+const PIPE_STAGES = ['To reach', 'In talks', 'Won'];
+function renderPipeline() {
+  const leads = LS.get('vos:pipeline', []);
+  const counts = PIPE_STAGES.map((st) => leads.filter((l) => l.stage === st).length);
+  const tone = ['c3', 'c2', 'primary'];
+  const stats = PIPE_STAGES.map((st, i) => `<div class="stat" style="--cat:var(--${tone[i]})"><div class="big">${counts[i]}</div><div class="lbl">${esc(st)}</div></div>`).join('');
+  const sections = PIPE_STAGES.map((st, si) => {
+    const rows = leads.filter((l) => l.stage === st).map((l) => `
+      <div class="lead">
+        <div class="lead-main"><div class="lead-name">${esc(l.name)}</div>${l.type ? `<div class="lead-type">${esc(l.type)}</div>` : ''}${l.next ? `<div class="lead-next">${ic('arrow')} ${esc(l.next)}</div>` : ''}</div>
+        <div class="lead-act">${si < PIPE_STAGES.length - 1 ? `<button class="btn-sm adv" data-id="${l.id}">Advance ${ic('arrow')}</button>` : `<span class="pill pill--good">won</span>`}<button class="btn-sm del" data-id="${l.id}">Remove</button></div>
+      </div>`).join('');
+    return `<section><div class="sec-head"><p class="eyebrow">${counts[si]} · ${esc(st)}</p></div><article class="card">${rows || `<p class="lead-empty">Nothing here yet.</p>`}</article></section>`;
+  }).join('');
+  app().innerHTML = `
+    <header class="hero"><p class="eyebrow">${ic('cash')} Pipeline</p><h1>Who you\u2019re chasing</h1><p class="lede">Your leads, from first contact to paid. Move one forward every day.</p></header>
+    <div class="stats" style="--n:3">${stats}</div>
+    <article class="card">
+      <div class="card-title"><span class="ico">${ic('plus')}</span><div><h3>Add a lead</h3></div></div>
+      <div class="lead-form">
+        <input id="pl-name" placeholder="Hotel / caf\u00e9 name (or codename)" autocomplete="off">
+        <input id="pl-type" placeholder="Type \u2014 e.g. boutique hotel" autocomplete="off">
+        <input id="pl-next" placeholder="Next action \u2014 e.g. send the free-reel offer" autocomplete="off">
+        <button id="pl-add" type="button">Add to pipeline</button>
+      </div>
+    </article>
+    ${sections}`;
+  const add = document.getElementById('pl-add');
+  if (add) add.addEventListener('click', () => {
+    const name = (document.getElementById('pl-name').value || '').trim(); if (!name) { document.getElementById('pl-name').focus(); return; }
+    const list = LS.get('vos:pipeline', []);
+    list.push({ id: Date.now(), name, type: (document.getElementById('pl-type').value || '').trim(), next: (document.getElementById('pl-next').value || '').trim(), stage: 'To reach' });
+    LS.set('vos:pipeline', list); renderPipeline();
+  });
+  document.querySelectorAll('.adv').forEach((b) => b.addEventListener('click', () => {
+    const id = Number(b.getAttribute('data-id')); const list = LS.get('vos:pipeline', []); const l = list.find((x) => x.id === id);
+    if (l) { const i = PIPE_STAGES.indexOf(l.stage); l.stage = PIPE_STAGES[Math.min(i + 1, PIPE_STAGES.length - 1)]; LS.set('vos:pipeline', list); renderPipeline(); }
+  }));
+  document.querySelectorAll('.del').forEach((b) => b.addEventListener('click', () => {
+    const id = Number(b.getAttribute('data-id')); LS.set('vos:pipeline', LS.get('vos:pipeline', []).filter((x) => x.id !== id)); renderPipeline();
+  }));
+  document.title = 'Pipeline \u00b7 Venture OS'; window.scrollTo(0, 0);
 }
 
 /* --- Library: the founder's playbook --- */
@@ -154,6 +200,7 @@ function setActiveNav(name) { document.querySelectorAll('.topbar .nav a[data-nav
 async function route() {
   const h = location.hash || '#/'; const idx = await loadIndex();
   if (h.startsWith('#/doc/')) { await renderDoc(decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
+  else if (h.startsWith('#/pipeline')) { renderPipeline(); setActiveNav('pipeline'); }
   else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('knowledge'); }
   else { await renderMission(idx); setActiveNav('mission'); }
 }

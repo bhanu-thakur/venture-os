@@ -7,6 +7,9 @@
 
 ---
 
+## 2026-06-29 (Pipeline — the leads you’re chasing)
+* New **Pipeline** experience (working layer, ADR-0018): add a lead (name · type · next action), move it **To reach → In talks → Won**, remove it; live per-stage counts. A Pipeline link + count now surfaces on Mission, tying the daily loop to real outreach. `sw` cache `v8→v9`. Verified locally (jsdom: add / advance / remove persist, 0 errors).
+
 ## 2026-06-29 (interactive cockpit — working layer)
 * **Mission becomes a cockpit you operate** (ADR-0018): an interactive **Today’s plan** (check items off, progress bar), **Capture a win** that saves and lists recent wins, a real-progress **streak**, and **launch pads** (Message on WhatsApp · Research references). State persists in the browser working layer; the repository stays the canonical record. `sw` cache `v7→v8`. Verified locally (jsdom: capture saves + streak + checks persist, 0 errors).
 

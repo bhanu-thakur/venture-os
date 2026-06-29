@@ -14,7 +14,7 @@ Mission is now an **interactive cockpit** (ADR-0018, working layer): today’s p
 Edit local clone → verify locally → present → stop. Founder commits/pushes via GitHub Desktop.
 
 ## Next experiences (build order)
-1. [ ] A real **pipeline** (the leads you’re chasing) — the strongest daily pull; working-layer, repository-committed when it matters.
+1. [x] **Pipeline** (leads you’re chasing) — shipped (working layer).
 2. [ ] Command Palette (jump-anywhere).
 3. [ ] Multi-device: derive “what changed” + working state from repository state.
 

@@ -277,6 +277,23 @@ html.js-reveal .reveal-in{opacity:1!important;transform:none!important}
 .launch{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-size:.85rem;font-weight:600;color:var(--ink);box-shadow:var(--shadow)}
 .launch:hover{border-color:var(--primary);color:var(--primary)}
 .launch .ic{width:15px;height:15px;color:var(--primary)}
+
+.lead-form{display:grid;gap:8px;margin-top:14px}
+.lead-form input{border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.9rem;background:var(--card);color:var(--ink)}
+.lead-form input:focus{outline:none;border-color:var(--primary)}
+.lead-form button{justify-self:start;border:0;background:var(--primary);color:#fff;border-radius:10px;padding:10px 18px;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
+.lead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.lead:first-child{border-top:0}
+.lead-name{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.05rem;color:var(--ink)}
+.lead-type{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--ink-faint);margin-top:2px}
+.lead-next{font-size:.85rem;color:var(--ink-soft);margin-top:6px;display:flex;align-items:center;gap:6px}
+.lead-next .ic{width:13px;height:13px;color:var(--primary)}
+.lead-act{display:flex;align-items:center;gap:8px;flex:none}
+.btn-sm{border:1px solid var(--line);background:var(--card);color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-sm.adv:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.del{color:var(--alert);border-color:transparent;padding:6px 8px}
+.btn-sm .ic{width:12px;height:12px}
+.lead-empty{color:var(--ink-faint);font-size:.88rem;margin:0}
 </style>
 </head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -315,6 +332,7 @@ html.js-reveal .reveal-in{opacity:1!important;transform:none!important}
 <a class="brand" href="#/"><span class="mark"><svg class="ic"><use href="#i-grid"/></svg></span><span class="bt">Venture OS<small>operating system</small></span></a>
 <nav class="nav">
 <a href="#/" data-nav="mission"><svg class="ic"><use href="#i-target"/></svg> Mission</a>
+<a href="#/pipeline" data-nav="pipeline"><svg class="ic"><use href="#i-cash"/></svg> Pipeline</a>
 <a href="#/knowledge" data-nav="knowledge"><svg class="ic"><use href="#i-book"/></svg> Library</a>
 </nav>
 </div></div>
