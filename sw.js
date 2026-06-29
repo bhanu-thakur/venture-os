@@ -1,7 +1,7 @@
 /* Venture OS service worker - Phase 0
    Cache-first shell; network-first index.json; stale-while-revalidate docs;
    cache-first runtime for web fonts. (TECHNICAL_ARCHITECTURE.md v2.0 SS6.6/SS9) */
-const CACHE = 'vos-cache-v1';
+const CACHE = 'vos-cache-v2';
 const SHELL = [
   './', './index.html', './app.js', './index.json', './manifest.webmanifest',
   './marked.min.js', './icon-192.png', './icon-512.png'

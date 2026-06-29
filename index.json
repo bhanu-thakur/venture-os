@@ -1,14 +1,16 @@
 {
   "version": 1,
   "nav": [
-    { "title": "Start Here", "path": "START_HERE.md", "type": "core", "accent": "c1" },
-    { "title": "Constitution", "path": "CONSTITUTION.md", "type": "core", "accent": "c1" },
-    { "title": "Product", "path": "PRODUCT.md", "type": "core", "accent": "c2" },
-    { "title": "Roadmap", "path": "ROADMAP.md", "type": "core", "accent": "c3" },
-    { "title": "Technical Architecture", "path": "TECHNICAL_ARCHITECTURE.md", "type": "core", "accent": "c4" },
-    { "title": "Architecture Decisions", "path": "ARCHITECTURE_DECISIONS.md", "type": "core", "accent": "c6" },
-    { "title": "Decision Ledger", "path": "DECISION_LEDGER.md", "type": "core", "accent": "c5" },
-    { "title": "Changelog", "path": "CHANGELOG.md", "type": "core", "accent": "c3" }
+    { "title": "Start Here", "path": "START_HERE.md", "type": "core", "category": "Orientation", "accent": "c1" },
+    { "title": "README", "path": "README.md", "type": "core", "category": "Orientation", "accent": "c1" },
+    { "title": "Constitution", "path": "CONSTITUTION.md", "type": "core", "category": "Doctrine", "accent": "c2" },
+    { "title": "Constitution Amendments", "path": "CONSTITUTION_AMENDMENTS.md", "type": "core", "category": "Doctrine", "accent": "c2" },
+    { "title": "Product", "path": "PRODUCT.md", "type": "core", "category": "Product & Strategy", "accent": "c3" },
+    { "title": "Roadmap", "path": "ROADMAP.md", "type": "core", "category": "Product & Strategy", "accent": "c3" },
+    { "title": "Technical Architecture", "path": "TECHNICAL_ARCHITECTURE.md", "type": "core", "category": "Architecture", "accent": "c4" },
+    { "title": "Architecture Decisions", "path": "ARCHITECTURE_DECISIONS.md", "type": "core", "category": "Architecture", "accent": "c4" },
+    { "title": "Decision Ledger", "path": "DECISION_LEDGER.md", "type": "core", "category": "Decisions & History", "accent": "c5" },
+    { "title": "Changelog", "path": "CHANGELOG.md", "type": "core", "category": "Decisions & History", "accent": "c5" }
   ],
   "ventures": []
 }

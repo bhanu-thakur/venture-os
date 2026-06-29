@@ -1,4 +1,4 @@
-/* Venture OS - Application Layer (Phase 1 dashboard)
+/* Venture OS - Application Layer (Phase 2: dashboard + knowledge library)
    Repository-driven rendering. Hash routing. No backend. No framework.
    Compliant with TECHNICAL_ARCHITECTURE.md v2.0. */
 
@@ -8,6 +8,9 @@ const ic = (name) => `<svg class="ic"><use href="#i-${name}"/></svg>`;
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const mdBlock = (s) => (window.marked && window.marked.parse) ? window.marked.parse(s) : ('<pre>' + esc(s) + '</pre>');
 const mdInline = (s) => (window.marked && window.marked.parseInline) ? window.marked.parseInline(s) : esc(s);
+
+const CATEGORY_ORDER = ['Orientation', 'Doctrine', 'Product & Strategy', 'Architecture', 'Decisions & History'];
+const CATEGORY_ICON = { 'Orientation': 'compass', 'Doctrine': 'book', 'Product & Strategy': 'target', 'Architecture': 'layers', 'Decisions & History': 'flag' };
 
 async function fetchText(path) {
   try {
@@ -58,14 +61,19 @@ function firstTask(md) {
   return m ? m[1].trim() : null;
 }
 
-function docTiles(idx) {
-  return (idx.nav || []).map((d) => `
+function tile(d, label, cta) {
+  return `
     <a class="tile" href="#/doc/${encodeURIComponent(d.path)}" style="--dc:var(--${d.accent || 'primary'})">
-      <div class="tn">${esc((d.type || 'DOC').toUpperCase())} ${ic('arrow')}</div>
+      <div class="tn">${esc(label)} ${ic('arrow')}</div>
       <div class="tt">${esc(d.title)}</div>
       <div class="td">${esc(d.path)}</div>
-      <div class="go">Open ${ic('arrow')}</div>
-    </a>`).join('');
+      <div class="go">${esc(cta)} ${ic('arrow')}</div>
+    </a>`;
+}
+function docTiles(idx) { return (idx.nav || []).map((d) => tile(d, (d.type || 'DOC').toUpperCase(), 'Open')).join(''); }
+
+function setActiveNav(name) {
+  document.querySelectorAll('.topbar .nav a[data-nav]').forEach((a) => a.classList.toggle('active', a.getAttribute('data-nav') === name));
 }
 
 async function renderDashboard(idx) {
@@ -134,10 +142,35 @@ async function renderDashboard(idx) {
     ${statusSection}
     ${activityPanel}
     <section id="docs">
-      <div class="sec-head num"><span class="sec-num">OS</span><div><p class="eyebrow">The repository</p><h2>Core operating system</h2><p>Tap any document to render it live from the repository.</p></div></div>
+      <div class="sec-head num"><span class="sec-num">OS</span><div><p class="eyebrow">The repository</p><h2>Core operating system</h2><p>Browse the full <a href="#/knowledge">Knowledge Library</a>, or open any document below.</p></div></div>
       <article class="card"><div class="cardgrid">${docTiles(idx)}</div></article>
     </section>`;
   document.title = 'Venture OS · Dashboard';
+  window.scrollTo(0, 0);
+}
+
+async function renderKnowledge(idx) {
+  const nav = idx.nav || [];
+  const groups = {};
+  nav.forEach((d) => { const c = d.category || 'Other'; (groups[c] = groups[c] || []).push(d); });
+  const order = [...CATEGORY_ORDER.filter((c) => groups[c]), ...Object.keys(groups).filter((c) => !CATEGORY_ORDER.includes(c))];
+  const sections = order.map((c) => `
+    <section>
+      <div class="sec-head"><p class="eyebrow">${ic(CATEGORY_ICON[c] || 'book')} ${groups[c].length} document${groups[c].length === 1 ? '' : 's'}</p><h2>${esc(c)}</h2></div>
+      <article class="card"><div class="cardgrid">${groups[c].map((d) => tile(d, c.toUpperCase(), 'Read')).join('')}</div></article>
+    </section>`).join('');
+  app().innerHTML = `
+    <header class="hero">
+      <p class="eyebrow">Knowledge Layer · repository-driven</p>
+      <h1>Knowledge Library</h1>
+      <p class="lede">Every piece of durable knowledge in Venture OS, grouped by category and <b>rendered live from the repository</b>. Tap any document to read it.</p>
+      <div class="stats" style="--n:2">
+        <div class="stat"><div class="big">${nav.length}</div><div class="lbl">Documents</div><div class="sub">Across ${order.length} categories</div></div>
+        <div class="stat" style="--cat:var(--c2)"><div class="big">${order.length}</div><div class="lbl">Categories</div><div class="sub">${esc(order.join(' · '))}</div></div>
+      </div>
+    </header>
+    ${sections}`;
+  document.title = 'Knowledge Library · Venture OS';
   window.scrollTo(0, 0);
 }
 
@@ -149,9 +182,9 @@ async function renderDoc(path) {
     const md = await r.text();
     const html = mdBlock(md);
     app().innerHTML = `
-      <div class="pagenav"><a href="#/">${ic('home')}<span class="dir">Dashboard</span><span class="ttl">All documents</span></a></div>
+      <div class="pagenav"><a href="#/">${ic('home')}<span class="dir">Dashboard</span><span class="ttl">Home</span></a><a href="#/knowledge">${ic('layers')}<span class="dir">Library</span><span class="ttl">All documents</span></a></div>
       <article class="card"><div class="doc-body">${html}</div></article>
-      <div class="pagenav"><a href="#/">${ic('arrow')}<span class="dir">Back</span><span class="ttl">Dashboard</span></a></div>`;
+      <div class="pagenav"><a href="#/knowledge">${ic('arrow')}<span class="dir">Back</span><span class="ttl">Knowledge Library</span></a></div>`;
     document.title = path + ' · Venture OS';
     window.scrollTo(0, 0);
   } catch (e) {
@@ -163,11 +196,9 @@ async function renderDoc(path) {
 async function route() {
   const h = location.hash || '#/';
   const idx = await loadIndex();
-  if (h.startsWith('#/doc/')) {
-    await renderDoc(decodeURIComponent(h.slice('#/doc/'.length)));
-  } else {
-    await renderDashboard(idx);
-  }
+  if (h.startsWith('#/doc/')) { await renderDoc(decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
+  else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('knowledge'); }
+  else { await renderDashboard(idx); setActiveNav('home'); }
 }
 
 window.addEventListener('hashchange', route);
