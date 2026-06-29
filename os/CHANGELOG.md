@@ -7,6 +7,9 @@
 
 ---
 
+## 2026-06-29 (Phase 3 — Mission home screen)
+* **Mission replaces the Dashboard as the landing experience** (`#/`). Renders the active venture's `mission.md` + `README.md` as a single-focus cockpit: quiet orientation (venture · State), the day's win (serif headline), one focal next-action card, the Venture-State journey path (Idea→Scale, current highlighted), a revenue-to-target line, and why-it-matters / proof on demand — with calm staggered entrance motion. Retired the survey dashboard and dead helpers. `sw.js` cache `v3→v4`. Built per the approved Experience Architecture. Verified locally (jsdom: Mission renders from real content, 0 console errors).
+
 ## 2026-06-29 (repository migration — holding-company layout)
 * **Repository restructured** to the holding-company layout (ADR-0016/0017): `os/` (Core OS), `founder/`, `ventures/` (portfolio), `library/`, `static/`; app shell at root. Moved OS docs → `os/`, app assets → `static/`, reality → `founder/context.md`; retired `CURRENT_VENTURE.md` (→ `ventures/README.md` + venture README + `NEXT.md`). Venture data is Markdown-first (ADR-0015; no `venture.json`). Updated `index.json`, `index.html`, `manifest`, `sw.js` (cache `v2→v3`), `app.js`, and the `START_HERE.md` boot sequence. `TECHNICAL_ARCHITECTURE.md` → v2.1 (§9 layout). Verified locally (jsdom: dashboard/knowledge/doc render, 0 console errors).
 
