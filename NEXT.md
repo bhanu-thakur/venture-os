@@ -1,21 +1,22 @@
 # NEXT ACTION QUEUE
 
 ## Current Status
-**Build Phase — shipping Venture OS as a static, repository-driven PWA on GitHub Pages.**
-Core OS frozen: `PRODUCT.md` v1.0 and `TECHNICAL_ARCHITECTURE.md` v2.0 (5-layer architecture). Live site: https://bhanu-thakur.github.io/venture-os/
+Build Phase. Repository restructured to the holding-company layout (`os/` · `founder/` · `ventures/` · `library/` · `static/`; app shell at root). Live cockpit: https://bhanu-thakur.github.io/venture-os/
+Active venture: **Venture 001 — Hospitality Media** (State: **Validation**) → `ventures/venture-001-hospitality-media/`
 
-Implementation progress (see `CHANGELOG.md` for detail):
-- ✅ Phase 0 — Foundation PWA shell (Card Atlas verbatim, offline, installable)
-- ✅ Phase 1 — Dashboard (live repository data)
-- ✅ Phase 2 — Knowledge Library (knowledge docs grouped by category)
-- ⬜ Phase 3 — Venture Engine (next)
-- ⬜ Phase 4 — Opportunity Engine
+Cockpit progress: Phase 0 shell ✅ · Phase 1 Dashboard ✅ · Phase 2 Knowledge Library ✅ · repository migration ✅
+Next: **Phase 3a** — author Venture 001 content (mission, offer, icp, outreach), then the **Mission** view.
 
-## Workflow (current)
-Edit the local clone → verify locally (syntax + jsdom render, 0 console errors) → present summary → **stop**. The founder commits/pushes via **GitHub Desktop** (the AI performs no Git operations). Deployment verification happens on the live Pages site after push.
+## Active Focus — Venture 001
+* Goal: secure the first paying client or a high-leverage portfolio (spec) shoot.
+* Immediate deliverable: a finalized offer/pricing + a value-first outreach asset (boutique / mid-range Shimla hotels).
+* Revenue target: ₹50,000.
+
+## Workflow
+Edit local clone → verify locally → present → stop. Founder commits/pushes via GitHub Desktop. The AI performs no Git operations.
 
 ## Immediate Tasks
-1. [ ] Phase 3 — Venture Engine: minimal read-only rendering of the Domain Layer (ventures + Venture States from `index.json` / `venture.json`). Awaiting approval before implementation.
+1. [ ] Phase 3a — author Venture 001 content in `ventures/venture-001-hospitality-media/` (`mission.md`, `business/offer.md`, `business/icp.md`, `execution/outreach.md`). Awaiting approval.
 
 ## Blockers
 * None.

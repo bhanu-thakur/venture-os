@@ -7,6 +7,9 @@
 
 ---
 
+## 2026-06-29 (repository migration — holding-company layout)
+* **Repository restructured** to the holding-company layout (ADR-0016/0017): `os/` (Core OS), `founder/`, `ventures/` (portfolio), `library/`, `static/`; app shell at root. Moved OS docs → `os/`, app assets → `static/`, reality → `founder/context.md`; retired `CURRENT_VENTURE.md` (→ `ventures/README.md` + venture README + `NEXT.md`). Venture data is Markdown-first (ADR-0015; no `venture.json`). Updated `index.json`, `index.html`, `manifest`, `sw.js` (cache `v2→v3`), `app.js`, and the `START_HERE.md` boot sequence. `TECHNICAL_ARCHITECTURE.md` → v2.1 (§9 layout). Verified locally (jsdom: dashboard/knowledge/doc render, 0 console errors).
+
 ## 2026-06-29 (Phase 2 — Knowledge Library)
 * **Knowledge Library implemented** (Implementation Roadmap step 2/3). New `#/knowledge` route groups the Knowledge Layer into 5 categories (Orientation, Doctrine, Product & Strategy, Architecture, Decisions & History) as browsable tiles opening the live document reader; added a Knowledge nav link + active-state handling. `index.json` now carries `category` metadata and includes README + Constitution Amendments (10 docs). Files: `app.js`, `index.json`, `index.html`, `sw.js` (cache `v1→v2`). Verified locally (jsdom: 5 sections, 10 tiles, 0 console errors). No architecture change; read-only.
 

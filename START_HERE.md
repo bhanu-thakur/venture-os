@@ -1,17 +1,28 @@
 # BOOTSTRAP: VENTURE OS
 
-If you are a new AI instance or I am returning to this project after a long absence, read this file first.
+If you are a new AI instance, or returning after a long absence, read this file first.
 
-Venture OS is a stateless, repository-driven operating system for building and scaling businesses. The AI acts as the processor; this repository acts as the memory and source of truth.
+Venture OS is a stateless, repository-driven operating system for building and scaling ventures. The AI Reasoning Engine is the processor; this repository is the memory and single source of truth. The app (`index.html` / `app.js` / `sw.js`) is a **derived cockpit** — regenerable from `os/TECHNICAL_ARCHITECTURE.md`, not authoritative.
 
-## The Boot Sequence
-To reconstruct the state of Venture OS, read these files in this exact order:
-1. `START_HERE.md` (You are here)
-2. `README.md` (Repo structure and rules)
-3. `CONSTITUTION.md` (Our immutable rules and Desi mindset filter)
-4. `CURRENT_CONTEXT.md` (My current physical and operational reality)
-5. `CURRENT_VENTURE.md` (The specific project we are building right now)
-6. `DECISION_LEDGER.md` (Why we made past strategic choices)
-7. `NEXT.md` (The immediate execution queue)
+## Repository structure
+- `os/` — the Core OS (doctrine + system specs)
+- `founder/` — founder profile + current reality
+- `ventures/` — the portfolio (one folder per venture)
+- `library/` — reusable knowledge + assets (created as content emerges)
+- `static/` — app assets; app shell (`index.html`, `app.js`, `sw.js`, `index.json`) at root
 
-Do not rely on conversational history. If the repository conflicts with your chat memory, the repository wins.
+## Boot sequence (read in this order)
+1. `START_HERE.md` (here)
+2. `README.md` — orientation
+3. `os/CONSTITUTION.md` — rules + Desi mindset filter
+4. `os/PRODUCT.md` — what Venture OS is (primitives, Venture States)
+5. `os/TECHNICAL_ARCHITECTURE.md` — how it runs (five layers, repo layout)
+6. `os/ARCHITECTURE_DECISIONS.md` — technical decisions (ADRs)
+7. `os/ROADMAP.md` — strategic roadmap
+8. `os/DECISION_LEDGER.md` — strategic/venture decisions + rationale
+9. `os/CHANGELOG.md` — history
+10. `founder/context.md` — current reality / constraints
+11. `ventures/README.md` — the portfolio + States; then each `ventures/<slug>/README.md` (identity + State) and `mission.md` (current execution)
+12. `NEXT.md` — immediate focus queue
+
+Do not rely on conversational history. If the repository conflicts with chat memory, the repository wins.

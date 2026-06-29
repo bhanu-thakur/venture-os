@@ -1,10 +1,8 @@
-# CURRENT VENTURE: Venture 001 (Hospitality Media)
-**Status:** Active Execution
+# CURRENT_VENTURE.md — retired
 
-## The Objective
-Build a profitable, repeatable media service for the hospitality sector, specifically targeting hotels in the Shimla region, to generate initial cash flow and validate the core Venture OS framework.
+Retired in the holding-company repository restructure. Its responsibility now lives in:
+- Portfolio + active venture/State: `ventures/README.md`
+- Venture 001 identity: `ventures/venture-001-hospitality-media/README.md`
+- Current focus queue: `NEXT.md`
 
-## Current Sprint
-* **Goal:** Secure the first paying client or land a high-leverage portfolio shoot.
-* **Current Deliverable:** A polished, high-value outreach asset and a finalized pricing/offer structure.
-* **Revenue Target:** ₹50,000.
+This file is safe to delete in GitHub Desktop.

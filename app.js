@@ -78,7 +78,7 @@ function setActiveNav(name) {
 
 async function renderDashboard(idx) {
   const [nextMd, ventureMd, contextMd, changelogMd] = await Promise.all(
-    ['NEXT.md', 'CURRENT_VENTURE.md', 'CURRENT_CONTEXT.md', 'CHANGELOG.md'].map(fetchText)
+    ['NEXT.md', idx.activeVenture || 'ventures/README.md', 'founder/context.md', 'os/CHANGELOG.md'].map(fetchText)
   );
 
   const task = nextMd ? firstTask(nextMd) : null;
@@ -91,12 +91,12 @@ async function renderDashboard(idx) {
   let venturePanel = '';
   if (ventureMd) {
     const title = firstTitle(ventureMd) || 'Active venture';
-    const status = fieldLine(ventureMd, 'Status');
+    const status = fieldLine(ventureMd, 'State');
     const objSec = sectionBlock(ventureMd, 'Objective');
     const objLine = objSec ? objSec.split('\n').map((l) => l.trim()).filter(Boolean)[0] : '';
     venturePanel = `
       <article class="card cat" style="--bc:var(--c4)">
-        <div class="card-top"><div class="card-title"><span class="ico">${ic('building')}</span><div><h3>${esc(title)}</h3><div class="val">CURRENT_VENTURE.md</div></div></div>${status ? `<span class="pill pill--brand">${esc(status)}</span>` : ''}</div>
+        <div class="card-top"><div class="card-title"><span class="ico">${ic('building')}</span><div><h3>${esc(title)}</h3><div class="val">Active venture</div></div></div>${status ? `<span class="pill pill--brand">${esc(status)}</span>` : ''}</div>
         ${objLine ? `<p class="lead">${mdInline(objLine)}</p>` : ''}
       </article>`;
   }
@@ -106,7 +106,7 @@ async function renderDashboard(idx) {
     const block = sectionBlock(contextMd, 'Reality Grounding');
     if (block) realityPanel = `
       <article class="card">
-        <div class="card-title"><span class="ico">${ic('compass')}</span><div><h3>Reality</h3><div class="val">CURRENT_CONTEXT.md</div></div></div>
+        <div class="card-title"><span class="ico">${ic('compass')}</span><div><h3>Reality</h3><div class="val">founder/context.md</div></div></div>
         <div class="doc-body">${mdBlock(block)}</div>
       </article>`;
   }
@@ -123,7 +123,7 @@ async function renderDashboard(idx) {
     if (blk) activityPanel = `
       <section id="activity">
         <div class="sec-head"><p class="eyebrow">History</p><h2>Recent activity</h2></div>
-        <article class="card"><div class="card-title"><span class="ico">${ic('activity')}</span><div><h3>Latest changelog entry</h3><div class="val">CHANGELOG.md</div></div></div><div class="doc-body">${mdBlock(blk)}</div></article>
+        <article class="card"><div class="card-title"><span class="ico">${ic('activity')}</span><div><h3>Latest changelog entry</h3><div class="val">os/CHANGELOG.md</div></div></div><div class="doc-body">${mdBlock(blk)}</div></article>
       </section>`;
   }
 

@@ -1,13 +1,14 @@
-# Venture OS 
+# Venture OS
 
-Venture OS is a proprietary, AI-driven operating system designed to rapidly ideate, validate, and scale digital ventures, specifically optimized for the realities of the Indian market.
+Venture OS is a stateless, repository-driven operating system for building and scaling ventures, optimized for the realities of the Indian market. **The repository is the single source of truth; the app is a thin, offline-capable cockpit over it.**
 
-## Architecture Concept: Stateless AI
-This repository is the single source of truth. The AI acts as the processor, reading this repository to understand context, proposing changes, and writing updates directly to these files via GitHub MCP. Chat history is considered temporary and disposable.
+New here (human or AI)? Read `START_HERE.md` for the boot sequence.
 
-## Directory Structure
-* `/docs/ventures` - Individual folders for each venture (e.g., `venture-001`).
-* `/docs/bibles` - Brand guidelines, marketing playbooks, and core IP.
-* `/docs/frameworks` - Reusable mental models and operational frameworks.
-* `/docs/templates` - Standardized formats for PRDs, copy, and code.
-* `/docs/research` - Market data, competitor analysis, and raw notes.
+## Structure
+- `os/` — the Core OS: Constitution, Product, Roadmap, Technical Architecture, ADRs, Decision Ledger, Changelog.
+- `founder/` — founder profile and current reality.
+- `ventures/` — the portfolio; one folder per venture (identity + State + mission).
+- `library/` — reusable knowledge and assets shared across ventures.
+- `static/` — app assets; the app shell (`index.html`, `app.js`, `sw.js`, `index.json`) lives at the repo root.
+
+Live cockpit: https://bhanu-thakur.github.io/venture-os/

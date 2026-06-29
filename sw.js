@@ -1,10 +1,10 @@
 /* Venture OS service worker - Phase 0
    Cache-first shell; network-first index.json; stale-while-revalidate docs;
    cache-first runtime for web fonts. (TECHNICAL_ARCHITECTURE.md v2.0 SS6.6/SS9) */
-const CACHE = 'vos-cache-v2';
+const CACHE = 'vos-cache-v3';
 const SHELL = [
   './', './index.html', './app.js', './index.json', './manifest.webmanifest',
-  './marked.min.js', './icon-192.png', './icon-512.png'
+  './static/vendor/marked.min.js', './static/icons/icon-192.png', './static/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

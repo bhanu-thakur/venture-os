@@ -1,7 +1,7 @@
 # TECHNICAL ARCHITECTURE
 
-**Version:** 2.0
-**Status:** LOCKED — Frozen at v2.0 (2026-06-29)
+**Version:** 2.1
+**Status:** Active — v2.1 (repository layout updated for the holding-company structure; see ADR-0016)
 **Supersedes:** v1.0 (post Architecture Design Review — layered redesign + ownership/reconstructability pass)
 **Governs:** How Venture OS is implemented as software. `PRODUCT.md` defines *what* the system is; this document defines *how it runs*.
 **Canonical design system:** `card-atlas-design-system.html` ("Card Atlas") — consumed verbatim, never redesigned here.
@@ -107,6 +107,8 @@ Knowledge is prose meant to be read and reasoned over. It is **not** queried as 
 
 ## 5. DOMAIN LAYER & DOMAIN MODEL
 
+> **Markdown-first (ADR-0015):** venture domain data is Markdown + lightweight frontmatter; `venture.json` is retired. JSON is reserved for the disposable `index.json` app map.
+
 The structured, first-class **entities** of the business — represented as **JSON domain objects** so the application can render and the AI can reason over them deterministically. JSON is for *things with state and relationships*; Markdown is for *meaning*.
 
 ### 5.1 The Domain Model (permanent entities)
@@ -201,19 +203,20 @@ The Execution Layer **writes outcomes back** into the repository (new Reality, L
 One repository, layered concerns, app at root:
 
 ```
-venture-os/
-├─ index.html  app.js  sw.js  manifest.webmanifest   # Application Layer
-├─ index.json                                          # derived nav/state projection
-├─ .nojekyll
-├─ assets/{fonts,icons,vendor}/
-├─ CONSTITUTION.md PRODUCT.md ROADMAP.md TECHNICAL_ARCHITECTURE.md
-│  ARCHITECTURE_DECISIONS.md DECISION_LEDGER.md CHANGELOG.md …  # Knowledge Layer
-├─ card-atlas-design-system.html                       # canonical design system
-└─ docs/
-   ├─ ventures/venture-001/{venture.json, *.md}        # Domain + Knowledge
-   ├─ frameworks/  bibles/                              # Knowledge
-   ├─ templates/                                        # Assets
-   └─ opportunities.json                                # Domain
+venture-os/  (repo root = GitHub Pages site root)
+├─ README.md  START_HERE.md  NEXT.md
+├─ index.html  app.js  sw.js  manifest.webmanifest  index.json  .nojekyll   # Application Layer (app shell)
+├─ static/                 # fonts/ icons/ vendor/  (app assets)
+├─ os/                     # Core OS: doctrine + system specs (Knowledge Layer)
+│   CONSTITUTION.md  CONSTITUTION_AMENDMENTS.md  PRODUCT.md  ROADMAP.md
+│   TECHNICAL_ARCHITECTURE.md  ARCHITECTURE_DECISIONS.md  CHANGELOG.md  DECISION_LEDGER.md  design-system.html
+├─ founder/                # Founder primitive + Reality
+│   profile.md  context.md
+├─ ventures/               # the portfolio (Domain Layer; one folder per venture)
+│   README.md              # portfolio index + States
+│   <venture-slug>/  README.md (identity+State)  mission.md (daily)  business/  execution/  lessons.md  assets/
+└─ library/                # cross-venture compounding substrate
+    frameworks/  bibles/  templates/  LESSONS_LEARNED.md
 ```
 
 The repository is the **authoritative store**; the running app holds only derived, disposable state. Folders under `/docs/*` are created **only when first needed** (no placeholders).
