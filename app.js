@@ -37,6 +37,7 @@ function fieldLine(md, label) { const m = md.match(new RegExp('\\*\\*' + label +
 function frontmatterField(md, key) { const m = md.match(new RegExp('^' + key + ':\\s*(.+)$', 'm')); return m ? m[1].trim() : null; }
 function sectionBlock(md, h) { const L = md.split('\n'); const i = L.findIndex((l) => /^#{1,3}\s/.test(l) && l.toLowerCase().includes(h.toLowerCase())); if (i < 0) return ''; const o = []; for (let j = i + 1; j < L.length; j++) { if (/^#{1,3}\s/.test(L[j])) break; o.push(L[j]); } return o.join('\n').trim(); }
 function firstLine(s) { return (s || '').split('\n').map((x) => x.trim()).filter(Boolean)[0] || ''; }
+function shortObjective(s) { let h = String(s || '').split(/\s*[\(\u2014:]| so that | so /)[0].trim(); const w = h.split(/\s+/); if (w.length > 9) h = w.slice(0, 9).join(' ') + '\u2026'; return h || String(s || ''); }
 function amount(s) { const n = Number(String(s || '').replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
 function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
 
@@ -55,6 +56,8 @@ async function renderMission(idx) {
   const decision = firstLine(sectionBlock(m, 'Decision Needed') || sectionBlock(m, 'Decision Required'));
   const revTarget = fieldLine(r, 'Revenue Target');
   const revCurrent = frontmatterField(m, 'revenue_current');
+  const shortWin = shortObjective(win);
+  const actionShort = (action.split('. ')[0] || action).trim();
 
   // working-layer state
   const t = todayKey();
@@ -66,7 +69,7 @@ async function renderMission(idx) {
   const checks = Object.assign({ act: false, reach: false }, allChecks[t] || {});
   const streak = LS.get('vos:streak', { count: 0, last: '' });
   const steps = [
-    { id: 'act', label: 'Do the one thing', on: !!checks.act },
+    { id: 'act', label: actionShort, on: !!checks.act },
     { id: 'reach', label: 'Move one lead forward', on: !!checks.reach },
     { id: 'log', label: 'Capture today’s win', on: wonToday, locked: true }
   ];
@@ -92,13 +95,9 @@ async function renderMission(idx) {
         <div class="stat" style="--cat:var(--c2)"><div class="big">${esc(revCurrent || '₹0')}</div><div class="lbl">of ${esc(revTarget || '—')}</div><div class="sub">Toward your milestone</div></div>
       </div>
       ${decision ? `<div class="note note--watch">${ic('warn')}<span><b>A decision is waiting.</b> ${mdInline(decision)}</span></div>` : ''}
-      <h1 class="mission-win">${mdInline(win)}</h1>
-      ${success ? `<p class="mission-meaning">${mdInline(success)}</p>` : ''}
-      <div class="mission-action">
-        <div class="ma-label">${ic('bulb')} The one thing</div>
-        <div class="ma-text">${mdInline(action)}</div>
-        ${detail ? `<button class="ma-toggle" type="button" aria-expanded="false">Why this matters ${ic('chevron')}</button><div class="ma-detail">${detail}</div>` : ''}
-      </div>
+      <h1 class="mission-win">${mdInline(shortWin)}</h1>
+      <p class="mission-meaning">${success ? mdInline(success) : mdInline(win)}</p>
+      ${detail ? `<button class="ma-toggle" type="button" aria-expanded="false">Why this matters ${ic('chevron')}</button><div class="ma-detail">${detail}</div>` : ''}
 
       <section class="plan">
         <p class="eyebrow">${ic('check')} Today’s plan · ${done}/${steps.length}</p>
