@@ -202,7 +202,9 @@ async function renderWorkspace(idx, slug) {
   const s = await snapshot(v);
   const isActive = activeSlug(idx) === slug;
   const isLearning = (v.type || '').toLowerCase().includes('learning');
-  const lsum = isLearning ? await learnSummary(v) : null;
+  const tracks = venTracks(v);
+  if (tracks.length) ensureLearnMigrated(slug, tracks[0].id);
+  const trackSums = tracks.length ? await Promise.all(tracks.map((tr) => trackSummary(slug, tr))) : [];
   const t = todayKey();
 
   // per-venture working state
@@ -252,7 +254,7 @@ async function renderWorkspace(idx, slug) {
       <p class="mission-meaning">${s.success ? mdInline(s.success) : (s.objective ? mdInline(s.objective) : '')}</p>
       ${detail ? `<button class="ma-toggle" type="button" aria-expanded="false">Why this matters ${ic('chevron')}</button><div class="ma-detail">${detail}</div>` : ''}
 
-      ${lsum ? `<a class="learn-cta" href="#/v/${esc(slug)}/learn"><div class="lc-top">${ic('bulb')} Continue learning · Rung ${lsum.current + 1} of ${lsum.total}${lsum.shipped ? ` · ${lsum.shipped} shipped` : ''}</div><div class="lc-title">${esc(lsum.rungTitle)}</div><div class="lc-next">${ic('arrow')} ${esc(lsum.nextLabel)}</div></a>` : ''}
+      ${trackSums.length ? `<section class="skills"><div class="sec-head"><p class="eyebrow">${ic('bulb')} Skills · learn by doing</p></div><div class="skillgrid">${trackSums.map((s) => { const pct = s.total ? Math.round(s.shipped / s.total * 100) : 0; return `<a class="skill" href="#/v/${esc(slug)}/learn/${esc(s.id)}" style="--vc:var(--${v.accent || 'primary'})"><div class="sk-top">${ic(s.icon || 'layers')} ${esc(s.title)}</div><div class="sk-meta">${s.allDone ? 'Complete' : `Rung ${s.current + 1} of ${s.total}`} · ${s.shipped} shipped</div><div class="sk-bar"><i style="width:${pct}%"></i></div><div class="sk-next">${ic('arrow')} ${esc(s.nextText)}</div></a>`; }).join('')}</div></section>` : ''}
 
       <section class="plan">
         <p class="eyebrow">${ic('check')} Today’s plan · ${done}/${steps.length}</p>
@@ -299,84 +301,133 @@ async function renderWorkspace(idx, slug) {
    parses it into rungs and walks the founder through one loop at a time:
    learn -> do the real challenge -> ship a portfolio piece -> review.
    ============================================================ */
-const LEARN_STEPS = [
-  { id: 'studied', verb: 'Study the lesson', field: 'lesson' },
-  { id: 'challenge', verb: 'Do the challenge', field: 'challenge' },
-  { id: 'shipped', verb: 'Ship the deliverable', field: 'deliverable' },
-  { id: 'reviewed', verb: 'Review your work', field: 'review' }
-];
-function curriculumPath(v) { const m = ((v && v.modules) || []).find((x) => /curriculum\.md$/.test(x.path)); return m ? m.path : ''; }
-function parseCurriculum(md) {
+function venTracks(v) { return (v && v.tracks) || []; }
+function trackById(v, id) { return venTracks(v).find((t) => t.id === id) || null; }
+// Parse a track file into rungs. Each rung: Goal / Lesson / Do (a list of real-world
+// actions) / Milestone / Review. The Do list is the interactive, get-off-your-seat core.
+function parseTrack(md) {
   const lines = (md || '').split('\n');
-  const fld = (blk, name) => { const m = blk.match(new RegExp('\\*\\*' + name + ':?\\*\\*\\s*([^\\n]+)')); return m ? m[1].trim() : ''; };
+  const fld = (blk, name) => { const m = blk.match(new RegExp('\\*\\*' + name + ':?\\*\\*\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
+  const doList = (blk) => {
+    const L = blk.split('\n'); const out = []; let on = false;
+    for (const l of L) {
+      if (/^\s*\*\*Do:?\*\*/i.test(l)) { on = true; continue; }
+      if (on) { if (/^\s*-\s+/.test(l)) out.push(l.replace(/^\s*-\s+/, '').trim()); else if (/^\s*\*\*/.test(l) || /^#{1,6}\s/.test(l)) break; }
+    }
+    return out;
+  };
   const idxs = []; lines.forEach((l, i) => { if (/^##\s+Rung\b/i.test(l)) idxs.push(i); });
   return idxs.map((start, k) => {
     const end = (k + 1 < idxs.length) ? idxs[k + 1] : lines.length;
     const head = lines[start].replace(/^##\s+/, '').trim();
     const title = head.replace(/^Rung\s+\d+\s*[—-]\s*/i, '').trim() || head;
     const blk = lines.slice(start, end).join('\n');
-    return { title, head, lesson: fld(blk, 'Lesson'), challenge: fld(blk, 'Challenge'), deliverable: fld(blk, 'Deliverable'), review: fld(blk, 'Review') };
+    return { title, head, goal: fld(blk, 'Goal'), lesson: fld(blk, 'Lesson'), steps: doList(blk), milestone: fld(blk, 'Milestone'), review: fld(blk, 'Review') };
   });
 }
-function getLearn(slug) { return Object.assign({ current: 0, steps: {}, portfolio: [] }, LS.get(vkey(slug, 'learn'), {})); }
-function setLearn(slug, v) { LS.set(vkey(slug, 'learn'), v); }
-async function learnSummary(v) {
-  const p = curriculumPath(v); if (!p) return null;
-  const rungs = parseCurriculum(await fetchText(p) || ''); if (!rungs.length) return null;
-  const st = getLearn(v.slug), cur = Math.min(st.current || 0, rungs.length - 1), steps = st.steps[cur] || {};
-  const allDone = (st.portfolio || []).length >= rungs.length;
-  const next = LEARN_STEPS.find((s) => !steps[s.id]);
-  return { total: rungs.length, current: cur, rungTitle: rungs[cur].title, nextLabel: allDone ? 'Curriculum complete' : (next ? next.verb : 'Complete this rung'), shipped: (st.portfolio || []).length, allDone };
+/* progress storage v2: vos:<slug>:learn = { tracks: { <trackId>: { current, done:{<rung>:{do:{i:true},ms:bool}}, portfolio:[] } } } */
+function ensureLearnMigrated(slug, firstTid) {
+  const d = LS.get(vkey(slug, 'learn'), null);
+  if (d && !d.tracks) { const nd = { tracks: {} }; if ((d.current != null || d.portfolio) && firstTid) nd.tracks[firstTid] = { current: d.current || 0, done: {}, portfolio: d.portfolio || [] }; LS.set(vkey(slug, 'learn'), nd); }
+}
+function getTrackState(slug, tid) { const d = LS.get(vkey(slug, 'learn'), {}); const st = (d.tracks && d.tracks[tid]) || {}; return { current: st.current || 0, done: st.done || {}, portfolio: st.portfolio || [] }; }
+function setTrackState(slug, tid, st) { const d = LS.get(vkey(slug, 'learn'), {}); const nd = { tracks: Object.assign({}, d.tracks) }; nd.tracks[tid] = st; LS.set(vkey(slug, 'learn'), nd); }
+function rungDone(state, i) { return state.done[i] || { do: {}, ms: false }; }
+function rungReady(rung, dr) { return rung.steps.every((s, i) => dr.do[i]) && (rung.steps.length === 0 ? dr.ms : dr.ms); }
+function rungFocal(rung, dr) { const i = rung.steps.findIndex((s, ix) => !dr.do[ix]); if (i >= 0) return { type: 'do', i, text: rung.steps[i] }; if (!dr.ms) return { type: 'ms', text: rung.milestone }; return null; }
+async function trackSummary(slug, t) {
+  const rungs = parseTrack(await fetchText(t.path) || '');
+  if (!rungs.length) return { id: t.id, title: t.title, icon: t.icon, desc: t.desc, total: 0, current: 0, nextText: 'Coming soon', shipped: 0, allDone: false };
+  const st = getTrackState(slug, t.id), cur = Math.min(st.current || 0, rungs.length - 1), rung = rungs[cur];
+  const dr = rungDone(st, cur), allShipped = (st.portfolio || []).length >= rungs.length;
+  const f = rungFocal(rung, dr);
+  const nextText = allShipped ? 'Track complete' : (f ? f.text : 'Complete the rung');
+  return { id: t.id, title: t.title, icon: t.icon, desc: t.desc, total: rungs.length, current: cur, rungTitle: rung.title, nextText, shipped: (st.portfolio || []).length, allDone: allShipped };
 }
 
-async function renderLearn(idx, slug) {
-  const v = ventureBySlug(idx, slug); const p = v && curriculumPath(v);
-  if (!v || !p) { app().innerHTML = `<div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} back</a></div><article class="card"><div class="note note--warn">${ic('warn')}<span>No curriculum for this venture yet.</span></div></article>`; return; }
-  const rungs = parseCurriculum(await fetchText(p) || '');
-  if (!rungs.length) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>Curriculum couldn’t be read.</span></div></article>`; return; }
-  const st = getLearn(slug), cur = Math.min(st.current || 0, rungs.length - 1), rung = rungs[cur];
-  const steps = Object.assign({}, st.steps[cur] || {});
-  const doneCount = LEARN_STEPS.filter((s) => steps[s.id]).length, ready = doneCount === LEARN_STEPS.length;
-  const focal = LEARN_STEPS.find((s) => !steps[s.id]);
-  const allShipped = (st.portfolio || []).length >= rungs.length;
-  const t = todayKey();
+// Skills chooser: all of a venture's tracks with live progress + next action.
+async function renderSkills(idx, slug) {
+  const v = ventureBySlug(idx, slug);
+  if (!v) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>Unknown venture. <a href="#/">HQ</a>.</span></div></article>`; return; }
+  const tracks = venTracks(v);
+  if (!tracks.length) { app().innerHTML = `<div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a></div><article class="card"><div class="note note--warn">${ic('warn')}<span>No skill tracks for this venture yet.</span></div></article>`; return; }
+  ensureLearnMigrated(slug, tracks[0].id);
+  const sums = await Promise.all(tracks.map((t) => trackSummary(slug, t)));
+  const cards = sums.map((s) => { const pct = s.total ? Math.round(s.shipped / s.total * 100) : 0; return `<a class="skill" href="#/v/${esc(slug)}/learn/${esc(s.id)}" style="--vc:var(--${v.accent || 'primary'})"><div class="sk-top">${ic(s.icon || 'layers')} ${esc(s.title)}</div>${s.desc ? `<div class="sk-desc">${esc(s.desc)}</div>` : ''}<div class="sk-meta">${s.allDone ? 'Complete' : `Rung ${s.current + 1} of ${s.total}`} · ${s.shipped} shipped</div><div class="sk-bar"><i style="width:${pct}%"></i></div><div class="sk-next">${ic('arrow')} ${esc(s.nextText)}</div></a>`; }).join('');
+  app().innerHTML = `
+    <div class="ws">
+      <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a></div>
+      <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
+        <p class="eyebrow">${ic('bulb')} Skills · ${esc(v.short)}</p>
+        <h1 class="ws-name">Learn by doing</h1>
+        <p class="ws-tag">Pick a skill. Each one is a ladder of real-world actions — climb a rung today.</p>
+      </header>
+      <div class="skillgrid big">${cards}</div>
+    </div>`;
+  document.title = 'Skills · ' + v.short; window.scrollTo(0, 0);
+}
 
-  const track = rungs.map((r, i) => { const shipped = (st.portfolio || []).some((x) => x.rung === i); const cls = shipped ? 'seg--good' : (i === cur ? 'seg--watch' : 'seg--flat'); return `<div class="seg ${cls}" style="flex:1"><span class="sname">${i + 1}</span></div>`; }).join('');
+// A single skill track: current rung with a focal action, the DO checklist, the milestone, portfolio.
+async function renderTrack(idx, slug, tid) {
+  const v = ventureBySlug(idx, slug); const t = v && trackById(v, tid);
+  if (!v || !t) { app().innerHTML = `<div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}/learn">${ic('arrow')} back</a></div><article class="card"><div class="note note--warn">${ic('warn')}<span>Unknown skill track.</span></div></article>`; return; }
+  ensureLearnMigrated(slug, venTracks(v)[0].id);
+  const rungs = parseTrack(await fetchText(t.path) || '');
+  if (!rungs.length) { app().innerHTML = `<div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}/learn">${ic('arrow')} back</a></div><article class="card"><div class="note note--warn">${ic('warn')}<span>This track couldn’t be read.</span></div></article>`; return; }
+  const st = getTrackState(slug, tid), cur = Math.min(st.current || 0, rungs.length - 1), rung = rungs[cur];
+  const dr = rungDone(st, cur);
+  const doneCount = rung.steps.filter((s, i) => dr.do[i]).length + (dr.ms ? 1 : 0), totalCount = rung.steps.length + 1;
+  const allShipped = (st.portfolio || []).length >= rungs.length;
+  const ready = rungReady(rung, dr);
+  const focal = rungFocal(rung, dr);
+  const today = todayKey();
+
+  const bar = rungs.map((r, i) => { const shipped = (st.portfolio || []).some((x) => x.rung === i); const cls = shipped ? 'seg--good' : (i === cur ? 'seg--watch' : 'seg--flat'); return `<div class="seg ${cls}" style="flex:1"><span class="sname">${i + 1}</span></div>`; }).join('');
   const portfolio = (st.portfolio || []).slice().reverse().map((x) => `<li><span class="d">${esc(x.date)}</span><span class="who">Rung ${x.rung + 1}</span>${esc(x.title)}${x.note ? ` — ${esc(x.note)}` : ''}</li>`).join('');
 
   const focalHtml = allShipped
-    ? `<div class="learn-focal done"><p class="lf-label">${ic('star')} Curriculum complete</p><p class="lf-verb">You’ve shipped all ${rungs.length} rungs.</p><p class="lf-body">Take paid work or a second-shooter slot — or revisit a rung to sharpen it.</p></div>`
-    : `<div class="learn-focal"><p class="lf-label">${ic('target')} Do this now</p><p class="lf-verb">${esc((focal || { verb: 'Complete this rung' }).verb)}</p><p class="lf-body">${mdInline((focal ? rung[focal.field] : '') || 'All four steps are done — complete the rung below to bank the piece.')}</p>${focal ? `<button class="lf-do" type="button" data-do="${focal.id}">Mark done ${ic('check')}</button>` : ''}</div>`;
+    ? `<div class="learn-focal done"><p class="lf-label">${ic('star')} Track complete</p><p class="lf-verb">You’ve cleared all ${rungs.length} rungs of ${esc(t.title)}.</p><p class="lf-body">Put it to work for real — or revisit a rung to sharpen it.</p></div>`
+    : `<div class="learn-focal"><p class="lf-label">${ic('target')} Do this now</p><p class="lf-verb">${focal ? mdInline(focal.text) : 'Complete this rung'}</p><p class="lf-body">${focal && focal.type === 'ms' ? 'This is the milestone — finish it and the rung is done.' : 'One concrete action. Do it in the real world, then check it off.'}</p>${focal ? `<button class="lf-do" type="button" data-do="${focal.type}" data-i="${focal.type === 'do' ? focal.i : ''}">Mark done ${ic('check')}</button>` : ''}</div>`;
+
+  const steplist = rung.steps.map((s, i) => `<div class="learn-step ${dr.do[i] ? 'on' : ''}" data-do="do" data-i="${i}"><span class="box">${ic('check')}</span><div class="ls-main"><div class="ls-body">${mdInline(s)}</div></div></div>`).join('');
+  const msRow = `<div class="learn-step ms ${dr.ms ? 'on' : ''}" data-do="ms"><span class="box">${ic('flag')}</span><div class="ls-main"><div class="ls-verb">Milestone</div><div class="ls-body">${mdInline(rung.milestone || '')}</div></div></div>`;
 
   app().innerHTML = `
     <div class="ws">
-      <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a><span class="pill pill--brand">Rung ${cur + 1} of ${rungs.length}</span></div>
+      <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}/learn">${ic('arrow')} ${esc(t.title)}</a><span class="pill pill--brand">Rung ${cur + 1} of ${rungs.length}</span></div>
       <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
-        <p class="eyebrow">${ic('bulb')} Learning · ${esc(v.short)}</p>
+        <p class="eyebrow">${ic(t.icon || 'bulb')} ${esc(t.title)} · ${esc(v.short)}</p>
         <h1 class="ws-name">${esc(rung.title)}</h1>
+        ${rung.goal ? `<p class="ws-tag">${mdInline(rung.goal)}</p>` : ''}
       </header>
-      <div class="mission-progress"><div class="track statepath learn-track">${track}</div></div>
+      <div class="mission-progress"><div class="track statepath learn-track">${bar}</div></div>
       ${focalHtml}
+      ${rung.lesson ? `<div class="learn-lesson"><p class="ll-label">${ic('book')} Lesson</p><p>${mdInline(rung.lesson)}</p></div>` : ''}
       <section class="learn-loop">
-        <p class="eyebrow">${ic('layers')} The loop · ${doneCount}/${LEARN_STEPS.length}</p>
-        ${LEARN_STEPS.map((s) => `<div class="learn-step ${steps[s.id] ? 'on' : ''}" data-step="${s.id}"><span class="box">${ic('check')}</span><div class="ls-main"><div class="ls-verb">${esc(s.verb)}</div><div class="ls-body">${mdInline(rung[s.field] || '')}</div></div></div>`).join('')}
+        <p class="eyebrow">${ic('check')} Your actions · ${doneCount}/${totalCount}</p>
+        ${steplist}
+        ${msRow}
       </section>
       <section class="learn-complete">
-        ${(ready && !allShipped) ? `<div class="capture-row"><input id="learn-note" placeholder="Link or note for this piece (optional)" autocomplete="off"><button id="learn-done" type="button">Complete Rung ${cur + 1} ${ic('arrow')}</button></div><p class="learn-hint">Banks this as a portfolio piece and ${cur + 1 < rungs.length ? 'opens the next rung' : 'finishes the curriculum'}.</p>` : (!allShipped ? `<p class="learn-hint">${ic('info')} Finish all four steps to complete this rung.</p>` : '')}
+        ${(ready && !allShipped) ? `<div class="capture-row"><input id="learn-note" placeholder="Link or note for this piece (optional)" autocomplete="off"><button id="learn-done" type="button">Complete Rung ${cur + 1} ${ic('arrow')}</button></div><p class="learn-hint">Banks this as a portfolio piece and ${cur + 1 < rungs.length ? 'opens the next rung' : 'finishes the track'}.</p>` : (!allShipped ? `<p class="learn-hint">${ic('info')} Do every action and the milestone to complete this rung.</p>` : '')}
       </section>
-      ${portfolio ? `<section class="learn-portfolio"><p class="eyebrow">${ic('star')} Portfolio · pieces shipped</p><ul class="moved">${portfolio}</ul></section>` : ''}
+      ${portfolio ? `<section class="learn-portfolio"><p class="eyebrow">${ic('star')} Portfolio · milestones hit</p><ul class="moved">${portfolio}</ul></section>` : ''}
     </div>`;
 
-  const toggle = (id) => { const s = getLearn(slug); s.steps[cur] = Object.assign({}, s.steps[cur]); s.steps[cur][id] = !s.steps[cur][id]; setLearn(slug, s); renderLearn(STATE.idx, slug); };
-  document.querySelectorAll('.learn-step[data-step]').forEach((el) => el.addEventListener('click', () => toggle(el.getAttribute('data-step'))));
-  const df = document.querySelector('.lf-do'); if (df) df.addEventListener('click', () => toggle(df.getAttribute('data-do')));
+  const toggle = (type, i) => {
+    const s = getTrackState(slug, tid); const d = Object.assign({ do: {}, ms: false }, s.done[cur]); d.do = Object.assign({}, d.do);
+    if (type === 'ms') d.ms = !d.ms; else d.do[i] = !d.do[i];
+    s.done = Object.assign({}, s.done); s.done[cur] = d; setTrackState(slug, tid, s); renderTrack(STATE.idx, slug, tid);
+  };
+  document.querySelectorAll('.learn-step[data-do]').forEach((el) => el.addEventListener('click', () => toggle(el.getAttribute('data-do'), Number(el.getAttribute('data-i')))));
+  const df = document.querySelector('.lf-do'); if (df) df.addEventListener('click', () => toggle(df.getAttribute('data-do'), Number(df.getAttribute('data-i'))));
   const done = document.getElementById('learn-done');
   if (done) done.addEventListener('click', () => {
-    const s = getLearn(slug); const note = (document.getElementById('learn-note').value || '').trim();
-    if (!(s.portfolio || []).some((x) => x.rung === cur)) { s.portfolio = (s.portfolio || []); s.portfolio.push({ rung: cur, title: rung.title, date: t, note }); }
-    s.current = Math.min(cur + 1, rungs.length - 1); setLearn(slug, s); registerWin(slug); renderLearn(STATE.idx, slug);
+    const s = getTrackState(slug, tid); const note = (document.getElementById('learn-note').value || '').trim();
+    if (!(s.portfolio || []).some((x) => x.rung === cur)) { s.portfolio = (s.portfolio || []); s.portfolio.push({ rung: cur, title: rung.title, date: today, note }); }
+    s.current = Math.min(cur + 1, rungs.length - 1); setTrackState(slug, tid, s); registerWin(slug); renderTrack(STATE.idx, slug, tid);
   });
-  document.title = 'Learning · ' + v.short; window.scrollTo(0, 0);
+  document.title = t.title + ' · ' + v.short; window.scrollTo(0, 0);
 }
 
 /* ============================================================
@@ -461,7 +512,9 @@ async function route() {
   if (h.startsWith('#/doc/')) { await renderDoc(idx, decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
   else if (h.startsWith('#/v/')) {
     const rest = h.slice('#/v/'.length); const parts = rest.split('/'); const slug = decodeURIComponent(parts[0]);
-    if (parts[1] === 'pipeline') renderPipeline(idx, slug); else if (parts[1] === 'learn') await renderLearn(idx, slug); else await renderWorkspace(idx, slug);
+    if (parts[1] === 'pipeline') renderPipeline(idx, slug);
+    else if (parts[1] === 'learn') { if (parts[2]) await renderTrack(idx, slug, decodeURIComponent(parts[2])); else await renderSkills(idx, slug); }
+    else await renderWorkspace(idx, slug);
     setActiveNav(null);
   }
   else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('library'); }

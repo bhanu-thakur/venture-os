@@ -400,6 +400,33 @@ ul.moved li .who{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-
 .learn-hint .ic{width:15px;height:15px}
 .learn-portfolio{margin-top:46px}
 .learn-portfolio .eyebrow{margin-bottom:12px}
+
+/* ===== Skills (tracks) ===== */
+.skills{margin-top:40px}
+.skills .sec-head{margin-bottom:16px}
+.skillgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.skillgrid.big{margin-top:8px}
+.skill{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--vc,var(--primary));border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease}
+.skill:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(20,40,30,.05),0 16px 34px -14px rgba(20,40,30,.22)}
+.sk-top{display:flex;align-items:center;gap:8px;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.08rem;color:var(--ink)}
+.sk-top .ic{width:17px;height:17px;color:var(--vc,var(--primary))}
+.sk-desc{font-size:.82rem;color:var(--ink-soft);margin-top:5px;line-height:1.45}
+.sk-meta{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.04em;color:var(--ink-faint);margin-top:9px;text-transform:uppercase}
+.sk-bar{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin:8px 0}
+.sk-bar i{display:block;height:100%;background:var(--vc,var(--primary));border-radius:999px}
+.sk-next{display:flex;align-items:center;gap:7px;font-size:.86rem;color:var(--ink-soft);margin-top:8px}
+.sk-next .ic{width:14px;height:14px;color:var(--vc,var(--primary));flex:none}
+@media(max-width:680px){.skillgrid{grid-template-columns:1fr}}
+
+/* lesson callout + milestone row */
+.learn-lesson{margin-top:22px;border:1px solid var(--line);border-left:3px solid var(--ink-faint);border-radius:12px;padding:14px 18px;background:#FAFBF8}
+.ll-label{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 6px}
+.ll-label .ic{width:14px;height:14px}
+.learn-lesson p{margin:0;color:var(--ink-soft);font-size:.95rem;line-height:1.6}
+.learn-step.ms{border-top:1px solid var(--line);margin-top:4px;background:var(--primary-soft);border-radius:12px;padding:14px 14px}
+.learn-step.ms .box{border-color:var(--primary)}
+.learn-step.ms.on .box{background:var(--primary);border-color:var(--primary)}
+.learn-step.ms .ls-verb{color:var(--primary)}
 </style>
 </head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">

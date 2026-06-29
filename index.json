@@ -11,6 +11,10 @@
       "type": "Client venture",
       "accent": "c2",
       "tagline": "Food-led media for Shimla hotels & cafés.",
+      "tracks": [
+        { "id": "food-cinematography", "title": "Food Cinematography", "icon": "camera", "path": "ventures/venture-001-hospitality-media/learning/food-cinematography.md", "desc": "Make food irresistible on an iPhone" },
+        { "id": "closing-hotels", "title": "Closing Hotels", "icon": "target", "path": "ventures/venture-001-hospitality-media/learning/closing-hotels.md", "desc": "Find, pitch & close hotels (Desi-market)" }
+      ],
       "modules": [
         { "title": "The Offer", "path": "ventures/venture-001-hospitality-media/business/offer.md", "icon": "cash", "accent": "c2", "desc": "Your productized offer & pricing" },
         { "title": "Ideal Customer", "path": "ventures/venture-001-hospitality-media/business/icp.md", "icon": "target", "accent": "c2", "desc": "Who you sell to, and why they buy" },
@@ -26,8 +30,11 @@
       "type": "Learning venture",
       "accent": "c4",
       "tagline": "Master cinematic wedding editing — skill first, income next.",
+      "tracks": [
+        { "id": "editing", "title": "Cinematic Editing", "icon": "layers", "path": "ventures/venture-002-wedding-films/learning/curriculum.md", "desc": "From raw footage to a paid-ready edit" },
+        { "id": "shooting", "title": "Cinematic Shooting", "icon": "camera", "path": "ventures/venture-002-wedding-films/learning/shooting.md", "desc": "Shoot cinematic footage on your iPhone" }
+      ],
       "modules": [
-        { "title": "Curriculum", "path": "ventures/venture-002-wedding-films/learning/curriculum.md", "icon": "layers", "accent": "c4", "desc": "The editing skill ladder" },
         { "title": "Reference Films", "path": "ventures/venture-002-wedding-films/learning/references.md", "icon": "star", "accent": "c4", "desc": "Films to study by rebuilding" },
         { "title": "Practice", "path": "ventures/venture-002-wedding-films/learning/practice.md", "icon": "dumbbell", "accent": "c4", "desc": "Editing challenges & reps" },
         { "title": "Opportunities", "path": "ventures/venture-002-wedding-films/business/opportunities.md", "icon": "cash", "accent": "c4", "desc": "The path to first income" }

@@ -21,7 +21,7 @@ Edit local clone (`C:\Users\acer\Documents\GitHub\venture-os`) → verify locall
 ## Next experiences (build order)
 1. [x] **Pipeline** (leads you're chasing) — shipped (per-venture).
 2. [x] **Founder HQ + multi-venture workspaces + deliberate switching** — shipped.
-3. [x] **Learning Engine** (curriculum as execution: lesson→challenge→deliverable→review, portfolio, progress) — shipped for learning ventures (`#/v/<slug>/learn`).
+3. [x] **Learning Engine → Skill tracks** (rich rungs: Goal→Lesson→Do actions→Milestone→Review; multiple tracks per venture, technical + soft skills; portfolio + progress) — shipped for all ventures (`#/v/<slug>/learn/<trackId>`).
 4. [ ] Lightweight lead & client tracking inside the lead workflow (log interaction · quote · follow-up).
 5. [ ] Project & deliverable workflow for client execution.
 6. [ ] Weekly review & reflection (playback + one lesson banked).

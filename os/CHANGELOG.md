@@ -7,6 +7,12 @@
 
 ---
 
+## 2026-06-30 (Skill tracks — the rung system, for every venture)
+* **Every venture now has the rung system, with multiple skill tracks** (technical *and* soft skills). Hospitality Media: **Food Cinematography** + **Closing Hotels** (negotiation/sales). Wedding Films: **Cinematic Editing** + **Cinematic Shooting**. A new **Skills** section on each workspace lists tracks with live progress and the literal next action; a skills chooser lives at `#/v/<slug>/learn`, each track at `#/v/<slug>/learn/<trackId>`.
+* **Rungs are richer and more actionable.** Each rung now carries a **Goal**, a short **Lesson**, a list of concrete real-world **Do** actions (each individually checkable — the "get off your seat" core), a **Milestone** proof piece, and a **Review**. A **Do this now** card surfaces the single next action verbatim. Completing every action + the milestone banks a portfolio piece, registers a streak day, and opens the next rung. More rungs per track (5–6) and an explicit milestone each.
+* **Engine generalised + data-driven:** `parseTrack` reads Goal/Lesson/Do-list/Milestone/Review from each track's Markdown (source of truth); per-venture, per-track progress (`vos:<slug>:learn.tracks.<id>`); v1 single-curriculum progress auto-migrates into the first track. Wedding Films' editing curriculum rewritten to the rich format; `index.json` carries `tracks[]` per venture.
+* `sw` cache `v13→v14`. Verified: track parser + rung state machine unit-tested (parses Goal/Do-list/Milestone across all 4 tracks, completion banks + advances + clamps); `app.js` syntax-checked.
+
 ## 2026-06-30 (Learning Engine — curriculum becomes execution)
 * **Learning is now a first-class workflow, not documentation.** New route `#/v/<slug>/learn` turns a learning venture's `curriculum.md` into a guided loop: the runtime parses each rung into **Lesson → Challenge → Deliverable → Review** and walks the founder one step at a time. The "45 free minutes" answer: a single **Do this now** focal action surfaces the next incomplete step.
 * **Built for doing, not reading.** Each rung is a four-step checklist (study → do the real challenge → ship the deliverable → review). Completing a rung **banks a portfolio piece** (with an optional link/note), **registers a streak win** (finished work counts), and opens the next rung. A progress track shows shipped vs current vs upcoming rungs; a portfolio list shows every piece shipped.
