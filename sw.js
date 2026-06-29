@@ -1,14 +1,25 @@
 /* Venture OS service worker - Phase 0
    Cache-first shell; network-first index.json; stale-while-revalidate docs;
    cache-first runtime for web fonts. (TECHNICAL_ARCHITECTURE.md v2.0 SS6.6/SS9) */
-const CACHE = 'vos-cache-v4';
+const CACHE = 'vos-cache-v6';
 const SHELL = [
   './', './index.html', './app.js', './index.json', './manifest.webmanifest',
   './static/vendor/marked.min.js', './static/icons/icon-192.png', './static/icons/icon-512.png'
 ];
 
+// Pre-cache with {cache:'reload'} so install bypasses the HTTP cache and always
+// stores the freshly-deployed files (prevents stale-on-deploy cache poisoning).
+async function precache() {
+  const c = await caches.open(CACHE);
+  await Promise.all(SHELL.map((u) =>
+    fetch(new Request(u, { cache: 'reload' }))
+      .then((res) => { if (res && (res.ok || res.type === 'opaque')) return c.put(u, res); })
+      .catch(() => {})
+  ));
+}
+
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(precache().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -50,13 +61,4 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(() => caches.match('./index.html')));
     return;
   }
-  if (url.host.includes('fonts.googleapis.com') || url.host.includes('fonts.gstatic.com')) {
-    e.respondWith(cacheFirst(req));
-    return;
-  }
-  if (url.origin === self.location.origin) {
-    if (url.pathname.endsWith('index.json')) { e.respondWith(networkFirst(req)); return; }
-    if (url.pathname.endsWith('.md')) { e.respondWith(staleWhileRevalidate(req)); return; }
-    e.respondWith(cacheFirst(req));
-  }
-});
+  if (url.host.i

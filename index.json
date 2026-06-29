@@ -2,18 +2,89 @@
   "version": 1,
   "activeVenture": "ventures/venture-001-hospitality-media/README.md",
   "nav": [
-    { "title": "Start Here", "path": "START_HERE.md", "type": "core", "category": "Orientation", "accent": "c1" },
-    { "title": "README", "path": "README.md", "type": "core", "category": "Orientation", "accent": "c1" },
-    { "title": "Constitution", "path": "os/CONSTITUTION.md", "type": "core", "category": "Doctrine", "accent": "c2" },
-    { "title": "Constitution Amendments", "path": "os/CONSTITUTION_AMENDMENTS.md", "type": "core", "category": "Doctrine", "accent": "c2" },
-    { "title": "Product", "path": "os/PRODUCT.md", "type": "core", "category": "Product & Strategy", "accent": "c3" },
-    { "title": "Roadmap", "path": "os/ROADMAP.md", "type": "core", "category": "Product & Strategy", "accent": "c3" },
-    { "title": "Technical Architecture", "path": "os/TECHNICAL_ARCHITECTURE.md", "type": "core", "category": "Architecture", "accent": "c4" },
-    { "title": "Architecture Decisions", "path": "os/ARCHITECTURE_DECISIONS.md", "type": "core", "category": "Architecture", "accent": "c4" },
-    { "title": "Decision Ledger", "path": "os/DECISION_LEDGER.md", "type": "core", "category": "Decisions & History", "accent": "c5" },
-    { "title": "Changelog", "path": "os/CHANGELOG.md", "type": "core", "category": "Decisions & History", "accent": "c5" }
+    {
+      "title": "Start Here",
+      "path": "START_HERE.md",
+      "type": "core",
+      "category": "Orientation",
+      "accent": "c1"
+    },
+    {
+      "title": "README",
+      "path": "README.md",
+      "type": "core",
+      "category": "Orientation",
+      "accent": "c1"
+    },
+    {
+      "title": "Constitution",
+      "path": "os/CONSTITUTION.md",
+      "type": "core",
+      "category": "Doctrine",
+      "accent": "c2"
+    },
+    {
+      "title": "Constitution Amendments",
+      "path": "os/CONSTITUTION_AMENDMENTS.md",
+      "type": "core",
+      "category": "Doctrine",
+      "accent": "c2"
+    },
+    {
+      "title": "Product",
+      "path": "os/PRODUCT.md",
+      "type": "core",
+      "category": "Product & Strategy",
+      "accent": "c3"
+    },
+    {
+      "title": "Roadmap",
+      "path": "os/ROADMAP.md",
+      "type": "core",
+      "category": "Product & Strategy",
+      "accent": "c3"
+    },
+    {
+      "title": "Technical Architecture",
+      "path": "os/TECHNICAL_ARCHITECTURE.md",
+      "type": "core",
+      "category": "Architecture",
+      "accent": "c4"
+    },
+    {
+      "title": "Experience Architecture",
+      "path": "os/EXPERIENCE_ARCHITECTURE.md",
+      "type": "core",
+      "category": "Architecture",
+      "accent": "c4"
+    },
+    {
+      "title": "Architecture Decisions",
+      "path": "os/ARCHITECTURE_DECISIONS.md",
+      "type": "core",
+      "category": "Architecture",
+      "accent": "c4"
+    },
+    {
+      "title": "Decision Ledger",
+      "path": "os/DECISION_LEDGER.md",
+      "type": "core",
+      "category": "Decisions & History",
+      "accent": "c5"
+    },
+    {
+      "title": "Changelog",
+      "path": "os/CHANGELOG.md",
+      "type": "core",
+      "category": "Decisions & History",
+      "accent": "c5"
+    }
   ],
   "ventures": [
-    { "title": "Venture 001 — Hospitality Media", "path": "ventures/venture-001-hospitality-media/README.md", "state": "Validation" }
+    {
+      "title": "Venture 001 — Hospitality Media",
+      "path": "ventures/venture-001-hospitality-media/README.md",
+      "state": "Validation"
+    }
   ]
 }

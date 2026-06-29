@@ -218,6 +218,13 @@ html.js-reveal .reveal-in{opacity:1!important;transform:none!important}
 .mission>*:nth-child(4){animation-delay:.24s}.mission>*:nth-child(5){animation-delay:.32s}
 .mission>*:nth-child(6){animation-delay:.40s}.mission>*:nth-child(7){animation-delay:.48s}
 @keyframes missionIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mission-delta{display:flex;align-items:center;gap:.5em;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--ink-faint);margin:22px 0 0}
+.mission-delta .ic{width:14px;height:14px;color:var(--primary)}
+.capture-card{display:block;width:100%;text-align:left;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-top:18px;box-shadow:var(--shadow);font-family:inherit;transition:border-color .15s ease,transform .15s ease}
+.capture-card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.capture-card .cap-label{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:.5em}
+.capture-card .cap-text{color:var(--ink-soft);font-size:.95rem;margin-top:6px}
+.capture-card .cap-go{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
 @media(prefers-reduced-motion:reduce){.mission>*{opacity:1;animation:none}}
 .doc-body>h1:first-child{margin-top:0}
 .doc-body h1{font-size:1.9rem;margin:26px 0 8px}

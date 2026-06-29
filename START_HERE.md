@@ -17,6 +17,7 @@ Venture OS is a stateless, repository-driven operating system for building and s
 3. `os/CONSTITUTION.md` — rules + Desi mindset filter
 4. `os/PRODUCT.md` — what Venture OS is (primitives, Venture States)
 5. `os/TECHNICAL_ARCHITECTURE.md` — how it runs (five layers, repo layout)
+6. `os/EXPERIENCE_ARCHITECTURE.md` — how the runtime feels (the daily loop; Mission is the home)
 6. `os/ARCHITECTURE_DECISIONS.md` — technical decisions (ADRs)
 7. `os/ROADMAP.md` — strategic roadmap
 8. `os/DECISION_LEDGER.md` — strategic/venture decisions + rationale

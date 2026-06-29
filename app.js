@@ -1,6 +1,6 @@
-/* Venture OS - Application Layer (Phase 3: Mission home screen)
+/* Venture OS - Application Layer (Mission = the daily founder experience)
    Repository-driven rendering. Hash routing. No backend. No framework.
-   Mission is the landing experience. Compliant with TECHNICAL_ARCHITECTURE v2.1 + Experience Architecture. */
+   Mission is the product; reference is summoned. Compliant with the frozen Experience Architecture v1.0. */
 
 const STATE = { idx: null };
 const app = () => document.getElementById('app');
@@ -52,7 +52,7 @@ function sectionBlock(md, headingIncludes) {
 function firstLine(s) { return (s || '').split('\n').map((x) => x.trim()).filter(Boolean)[0] || ''; }
 function amount(s) { const n = Number(String(s || '').replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
 
-/* --- Mission: the landing experience --- */
+/* --- Mission: the complete daily experience --- */
 async function renderMission(idx) {
   const venturePath = idx.activeVenture || 'ventures/README.md';
   const missionPath = venturePath.replace(/README\.md$/, 'mission.md');
@@ -69,8 +69,25 @@ async function renderMission(idx) {
   const action = firstLine(sectionBlock(m, 'Highest-Leverage Next Action') || sectionBlock(m, 'Next Action')) || 'Open today’s mission';
   const why = firstLine(sectionBlock(m, 'Bottleneck'));
   const proof = firstLine(sectionBlock(m, 'Proof of Execution'));
+  const decision = firstLine(sectionBlock(m, 'Decision Needed') || sectionBlock(m, 'Decision Required'));
   const revTarget = fieldLine(r, 'Revenue Target');
   const revCurrent = frontmatterField(m, 'revenue_current');
+
+  // "Since last time" — honest delta from local UI memory vs current repo values
+  let deltaMsg = '';
+  try {
+    const key = 'vos:lastseen:' + venturePath;
+    const prev = JSON.parse(localStorage.getItem(key) || 'null');
+    const now = { state: state, rev: (revCurrent || '') };
+    if (!prev) { deltaMsg = 'First session — set the loop in motion.'; }
+    else {
+      const parts = [];
+      if (prev.state && prev.state !== now.state) parts.push('State advanced to ' + esc(now.state));
+      if ((prev.rev || '') !== (now.rev || '')) parts.push('Revenue ' + esc(prev.rev || '₹0') + ' → ' + esc(now.rev || '₹0'));
+      deltaMsg = parts.length ? parts.join(' · ') : 'No change since your last visit — today moves it.';
+    }
+    localStorage.setItem(key, JSON.stringify(now));
+  } catch (e) { deltaMsg = ''; }
 
   const curIdx = VENTURE_STATES.findIndex((x) => x.toLowerCase() === String(state).toLowerCase());
   const path = VENTURE_STATES.map((s, i) => {
@@ -90,6 +107,7 @@ async function renderMission(idx) {
   app().innerHTML = `
     <div class="mission">
       <p class="eyebrow">${ic('target')} ${esc(ventureName)}${state ? ` · ${esc(state)}` : ''}</p>
+      ${decision ? `<div class="note note--watch">${ic('warn')}<span><b>A decision is waiting.</b> ${mdInline(decision)}</span></div>` : ''}
       <h1 class="mission-win">${mdInline(win)}</h1>
       ${success ? `<p class="mission-meaning">${mdInline(success)}</p>` : ''}
       <a class="mission-action" href="#/doc/${encodeURIComponent(missionPath)}">
@@ -97,6 +115,12 @@ async function renderMission(idx) {
         <div class="ma-text">${mdInline(action)}</div>
         <div class="ma-go">Begin ${ic('arrow')}</div>
       </a>
+      ${deltaMsg ? `<p class="mission-delta">${ic('activity')} <span>${deltaMsg}</span></p>` : ''}
+      <button id="vos-capture" class="capture-card" type="button">
+        <div class="cap-label">${ic('plus')} Capture</div>
+        <div class="cap-text">Bank today’s outcome in one line, then commit it to the repository.</div>
+        <div class="cap-go">Copy today’s log entry ${ic('arrow')}</div>
+      </button>
       <div class="mission-progress"><p class="eyebrow">${ic('activity')} The journey</p><div class="track statepath">${path}</div></div>
       ${revBlock}
       <div class="mission-stakes">
@@ -104,11 +128,22 @@ async function renderMission(idx) {
         ${proof ? `<div class="note note--done">${ic('check')}<span><b>Proof you’re building.</b> ${mdInline(proof)}</span></div>` : ''}
       </div>
     </div>`;
+
+  const cap = document.getElementById('vos-capture');
+  if (cap) cap.addEventListener('click', () => {
+    const date = new Date().toISOString().slice(0, 10);
+    const entry = '- ' + date + ': [what you did today] — proof: [link or “none yet”]';
+    const go = cap.querySelector('.cap-go');
+    const done = () => { if (go) go.textContent = 'Copied — paste into mission.md / execution/log.md, then commit'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(entry).then(done).catch(() => { if (go) go.textContent = entry; });
+    else if (go) go.textContent = entry;
+  });
+
   document.title = 'Mission · Venture OS';
   window.scrollTo(0, 0);
 }
 
-/* --- Knowledge Library (secondary, quiet) --- */
+/* --- Knowledge Library (summoned reference) --- */
 function tile(d, label, cta) {
   return `
     <a class="tile" href="#/doc/${encodeURIComponent(d.path)}" style="--dc:var(--${d.accent || 'primary'})">

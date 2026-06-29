@@ -7,6 +7,13 @@
 
 ---
 
+## 2026-06-29 (Mission complete + Experience Architecture frozen)
+* **Experience Architecture v1.0 frozen** as `os/EXPERIENCE_ARCHITECTURE.md` (added to the boot sequence and Knowledge nav). The loop is the product; Mission is the only daily home; Knowledge/Review/Portfolio/Founder/Assets are reference summoned via a future Command Palette.
+* **Mission upgraded to the complete daily experience:** added the **"Since last time"** delta (honest movement from local UI memory vs current repo values), a one-line **Capture** affordance (generates a paste-ready log entry; the founder commits — no in-app persistence), and a **decision beat** that surfaces on Mission when a venture has a pending decision (gated on content). `sw.js` cache `v5→v6`. Verified locally (jsdom, 0 console errors). Aligns with the frozen Experience Architecture.
+
+## 2026-06-29 (Phase 3 — service-worker update-reliability fix)
+* `sw.js`: pre-cache shell assets with `{cache:'reload'}` so install **bypasses GitHub Pages' HTTP cache** and always stores the freshly-deployed files — fixes the stale-on-deploy cache poisoning observed during Phase 3 verification (returning visitors served an old build). Cache `v4→v5`. Addresses the caching item in `TECHNICAL_ARCHITECTURE.md` §12.
+
 ## 2026-06-29 (Phase 3 — Mission home screen)
 * **Mission replaces the Dashboard as the landing experience** (`#/`). Renders the active venture's `mission.md` + `README.md` as a single-focus cockpit: quiet orientation (venture · State), the day's win (serif headline), one focal next-action card, the Venture-State journey path (Idea→Scale, current highlighted), a revenue-to-target line, and why-it-matters / proof on demand — with calm staggered entrance motion. Retired the survey dashboard and dead helpers. `sw.js` cache `v3→v4`. Built per the approved Experience Architecture. Verified locally (jsdom: Mission renders from real content, 0 console errors).
 
