@@ -7,6 +7,12 @@
 
 ---
 
+## 2026-06-29 (Phase 2 — Knowledge Library)
+* **Knowledge Library implemented** (Implementation Roadmap step 2/3). New `#/knowledge` route groups the Knowledge Layer into 5 categories (Orientation, Doctrine, Product & Strategy, Architecture, Decisions & History) as browsable tiles opening the live document reader; added a Knowledge nav link + active-state handling. `index.json` now carries `category` metadata and includes README + Constitution Amendments (10 docs). Files: `app.js`, `index.json`, `index.html`, `sw.js` (cache `v1→v2`). Verified locally (jsdom: 5 sections, 10 tiles, 0 console errors). No architecture change; read-only.
+
+## 2026-06-29 (Phase 1 — Dashboard)
+* **Dashboard implemented** (Implementation Roadmap step 2). Home route now renders live repository data: current focus (`NEXT.md`), active venture + status (`CURRENT_VENTURE.md`), reality (`CURRENT_CONTEXT.md`), recent activity (`CHANGELOG.md`), plus the document grid. File: `app.js`. Verified locally (jsdom, 0 console errors). No architecture change; read-only.
+
 ## 2026-06-29 (Phase 0 — foundation shell)
 * **PWA foundation shell implemented** (Implementation Roadmap step 1): `index.html` (Card Atlas integrated verbatim), `app.js` (hash routing + repository-driven Markdown rendering via vendored `marked`), `sw.js` (offline: cache-first shell, network-first index, SWR docs), `manifest.webmanifest`, `index.json`, `.nojekyll`, `marked.min.js`, and PWA icons. No features beyond the shell.
 * **Implementation ADRs:** ADR-0012 (flat root layout due to web-UI commit tooling) and ADR-0013 (Phase 0 font delivery via CDN link + SW cache). The frozen architecture was not modified.
