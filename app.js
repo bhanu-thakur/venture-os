@@ -1,6 +1,8 @@
-/* Venture OS - Application Layer (the cockpit you operate).
+/* Venture OS - Application Layer (the company HQ you operate).
    Repository = canonical record for durable truth. A local working layer (browser)
-   holds the founder's daily working state (plan checks, captured wins, streak). ADR-0018. */
+   holds the founder's daily working state, now namespaced PER VENTURE so nothing is
+   mixed between ventures. HQ is the founder home; each venture is its own workspace.
+   (Experience Architecture: Portfolio activates at >=2 ventures; ADR-0018 working layer.) */
 
 const STATE = { idx: null };
 const app = () => document.getElementById('app');
@@ -9,21 +11,35 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '
 const mdBlock = (s) => (window.marked && window.marked.parse) ? window.marked.parse(s) : ('<pre>' + esc(s) + '</pre>');
 const mdInline = (s) => (window.marked && window.marked.parseInline) ? window.marked.parseInline(s) : esc(s);
 
-const CATEGORY_ORDER = ['Playbook', 'Operating System'];
-const CATEGORY_ICON = { 'Playbook': 'target', 'Operating System': 'compass' };
+const CATEGORY_ORDER = ['Operating System'];
+const CATEGORY_ICON = { 'Operating System': 'compass', 'Playbook': 'target' };
 const VENTURE_STATES = ['Idea', 'Research', 'Validation', 'Prototype', 'Execution', 'Revenue', 'Scale'];
+const TYPE_ICON = { 'Learning venture': 'bulb', 'Client venture': 'building' };
 
-/* --- local working layer (browser) --- */
+/* --- local working layer (browser), namespaced per venture --- */
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
+const vkey = (slug, k) => `vos:${slug}:${k}`;
 const todayKey = () => new Date().toISOString().slice(0, 10);
-function registerWin() {
-  const t = todayKey(), s = LS.get('vos:streak', { count: 0, last: '' });
+const yesterdayKey = () => new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+
+// One-time migration: legacy global working state -> Venture 001 namespace.
+function migrate() {
+  if (LS.get('vos:migrated', false)) return;
+  const target = 'venture-001-hospitality-media';
+  ['checks', 'captures', 'streak', 'pipeline'].forEach((k) => {
+    const old = LS.get('vos:' + k, null);
+    if (old != null && LS.get(vkey(target, k), null) == null) LS.set(vkey(target, k), old);
+  });
+  LS.set('vos:migrated', true);
+}
+
+function registerWin(slug) {
+  const key = vkey(slug, 'streak'), t = todayKey(), s = LS.get(key, { count: 0, last: '' });
   if (s.last === t) return s;
-  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  s.count = (s.last === y) ? s.count + 1 : 1; s.last = t; LS.set('vos:streak', s); return s;
+  s.count = (s.last === yesterdayKey()) ? s.count + 1 : 1; s.last = t; LS.set(key, s); return s;
 }
 
 async function fetchText(p) { try { const r = await fetch(p, { cache: 'no-cache' }); if (!r.ok) throw 0; return await r.text(); } catch (e) { return null; } }
@@ -32,113 +48,257 @@ async function loadIndex() {
   try { const r = await fetch('index.json', { cache: 'no-cache' }); STATE.idx = await r.json(); } catch (e) { STATE.idx = { nav: [], ventures: [] }; }
   return STATE.idx;
 }
+
+/* --- markdown field helpers --- */
 function firstTitle(md) { const m = md.match(/^#\s+(.+)$/m); return m ? m[1].trim() : null; }
 function fieldLine(md, label) { const m = md.match(new RegExp('\\*\\*' + label + ':?\\*\\*\\s*([^\\n]+)')); return m ? m[1].trim().replace(/\*\*/g, '') : null; }
 function frontmatterField(md, key) { const m = md.match(new RegExp('^' + key + ':\\s*(.+)$', 'm')); return m ? m[1].trim() : null; }
 function sectionBlock(md, h) { const L = md.split('\n'); const i = L.findIndex((l) => /^#{1,3}\s/.test(l) && l.toLowerCase().includes(h.toLowerCase())); if (i < 0) return ''; const o = []; for (let j = i + 1; j < L.length; j++) { if (/^#{1,3}\s/.test(L[j])) break; o.push(L[j]); } return o.join('\n').trim(); }
 function firstLine(s) { return (s || '').split('\n').map((x) => x.trim()).filter(Boolean)[0] || ''; }
-function shortObjective(s) { let h = String(s || '').split(/\s*[\(\u2014:]| so that | so /)[0].trim(); const w = h.split(/\s+/); if (w.length > 9) h = w.slice(0, 9).join(' ') + '\u2026'; return h || String(s || ''); }
+// A markdown italic placeholder like "_None yet._" carries no real content.
+function realLine(s) { s = (s || '').trim(); return /^_/.test(s) ? '' : s; }
+function shortObjective(s) { let h = String(s || '').split(/\s*[\(—:]| so that | so /)[0].trim(); const w = h.split(/\s+/); if (w.length > 9) h = w.slice(0, 9).join(' ') + '…'; return h || String(s || ''); }
 function amount(s) { const n = Number(String(s || '').replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
+function inr(n) { return '₹' + (n || 0).toLocaleString('en-IN'); }
 function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
 
-async function renderMission(idx) {
-  const venturePath = idx.activeVenture || 'ventures/README.md';
-  const missionPath = venturePath.replace(/README\.md$/, 'mission.md');
-  const [readme, mission] = await Promise.all([fetchText(venturePath), fetchText(missionPath)]);
+/* --- venture resolution + active-focus pointer (working layer) --- */
+function slugFromPath(p) { const m = String(p || '').match(/ventures\/([^\/]+)\//); return m ? m[1] : ''; }
+function defaultSlug(idx) { return slugFromPath(idx.activeVenture) || ((idx.ventures || [])[0] && idx.ventures[0].slug) || ''; }
+function activeSlug(idx) { const d = defaultSlug(idx); const s = LS.get('vos:active', d) || d; return (idx.ventures || []).some((v) => v.slug === s) ? s : d; }
+function ventureBySlug(idx, slug) { return (idx.ventures || []).find((v) => v.slug === slug) || null; }
+
+async function snapshot(v) {
+  const [readme, mission] = await Promise.all([fetchText(v.path), fetchText(v.path.replace(/README\.md$/, 'mission.md'))]);
   const r = readme || '', m = mission || '';
-  const ventureName = firstTitle(r) || 'Your venture';
-  const state = fieldLine(r, 'State') || (idx.ventures && idx.ventures[0] && idx.ventures[0].state) || '';
-  const win = firstLine(sectionBlock(m, "Today's Objective") || sectionBlock(m, 'Today')) || 'Set today’s objective';
-  const success = firstLine(sectionBlock(m, 'Success Today'));
-  const action = firstLine(sectionBlock(m, 'Highest-Leverage Next Action') || sectionBlock(m, 'Next Action')) || win;
-  const why = firstLine(sectionBlock(m, 'Bottleneck'));
-  const proof = firstLine(sectionBlock(m, 'Proof of Execution'));
-  const decision = firstLine(sectionBlock(m, 'Decision Needed') || sectionBlock(m, 'Decision Required'));
-  const revTarget = fieldLine(r, 'Revenue Target');
-  const revCurrent = frontmatterField(m, 'revenue_current');
-  const shortWin = shortObjective(win);
-  const actionShort = (action.split('. ')[0] || action).trim();
+  const objective = firstLine(sectionBlock(m, "Today's Objective") || sectionBlock(m, 'Today'));
+  const action = firstLine(sectionBlock(m, 'Highest-Leverage Next Action') || sectionBlock(m, 'Next Action'));
+  return {
+    v, r, m,
+    name: firstTitle(r) || v.title,
+    state: fieldLine(r, 'State') || v.state || '',
+    objective: realLine(objective),
+    success: realLine(firstLine(sectionBlock(m, 'Success Today'))),
+    action: realLine(action) || realLine(objective),
+    why: realLine(firstLine(sectionBlock(m, 'Bottleneck'))),
+    proof: realLine(firstLine(sectionBlock(m, 'Proof of Execution'))),
+    decision: realLine(firstLine(sectionBlock(m, 'Decision Needed') || sectionBlock(m, 'Decision Required'))),
+    revTarget: fieldLine(r, 'Revenue Target'),
+    revCurrent: frontmatterField(m, 'revenue_current')
+  };
+}
 
-  // working-layer state
-  const t = todayKey();
-  const captures = LS.get('vos:captures', []);
-  const pipeCount = LS.get('vos:pipeline', []).length;
-  const leadsInPlay = LS.get('vos:pipeline', []).filter((l) => l.stage !== 'Won').length;
-  const wonToday = captures.some((c) => c.date === t);
-  const allChecks = LS.get('vos:checks', {});
-  const checks = Object.assign({ act: false, reach: false }, allChecks[t] || {});
-  const streak = LS.get('vos:streak', { count: 0, last: '' });
-  const steps = [
-    { id: 'act', label: actionShort, on: !!checks.act },
-    { id: 'reach', label: 'Move one lead forward', on: !!checks.reach },
-    { id: 'log', label: 'Capture today’s win', on: wonToday, locked: true }
-  ];
-  const done = steps.filter((s) => s.on).length;
-  const pct = Math.round(done / steps.length * 100);
+function statePath(state) {
+  const cur = VENTURE_STATES.findIndex((x) => x.toLowerCase() === String(state).toLowerCase());
+  return VENTURE_STATES.map((s, i) => `<div class="seg ${i === cur ? 'seg--good' : 'seg--flat'}" style="flex:1${(cur >= 0 && i > cur) ? ';opacity:.45' : ''}"><span class="sname">${esc(s)}</span></div>`).join('');
+}
+function revBlockHtml(revTarget, revCurrent) {
+  if (!revTarget) return '';
+  const tv = amount(revTarget), c = amount(revCurrent), rp = tv > 0 ? Math.max(0, Math.min(100, Math.round(c / tv * 100))) : 0;
+  return `<div class="mission-progress"><p class="eyebrow">${ic('cash')} Revenue</p><div class="rev-bar"><div class="rev-fill" style="width:${rp}%"></div></div><div class="rev-meta"><span>${esc(revCurrent || '₹0')}</span><span>${esc(revTarget)}</span></div></div>`;
+}
 
-  const curIdx = VENTURE_STATES.findIndex((x) => x.toLowerCase() === String(state).toLowerCase());
-  const path = VENTURE_STATES.map((s, i) => `<div class="seg ${i === curIdx ? 'seg--good' : 'seg--flat'}" style="flex:1${(curIdx >= 0 && i > curIdx) ? ';opacity:.45' : ''}"><span class="sname">${esc(s)}</span></div>`).join('');
-  let revBlock = '';
-  if (revTarget) { const tv = amount(revTarget), c = amount(revCurrent); const rp = tv > 0 ? Math.max(0, Math.min(100, Math.round(c / tv * 100))) : 0; revBlock = `<div class="mission-progress"><p class="eyebrow">${ic('cash')} Revenue</p><div class="rev-bar"><div class="rev-fill" style="width:${rp}%"></div></div><div class="rev-meta"><span>${esc(revCurrent || '₹0')}</span><span>${esc(revTarget)}</span></div></div>`; }
-  const detail = [why ? `<p><b>Why it matters.</b> ${mdInline(why)}</p>` : '', proof ? `<p><b>The proof you’re after.</b> ${mdInline(proof)}</p>` : ''].join('');
-  const recent = captures.slice(-3).reverse().map((c) => `<li><span class="d">${esc(c.date)}</span>${esc(c.text)}</li>`).join('');
-  const waQ = encodeURIComponent(firstLine(sectionBlock(m, 'Outreach')) || 'Hi, I make short reels for hotels & cafés here in the hills — could I make one for your place?');
-  const research = 'https://www.pinterest.com/search/pins/?q=' + encodeURIComponent('boutique hotel reel hospitality');
+/* ============================================================
+   HQ — the founder home. Belongs to Bhanu, not to any venture.
+   ============================================================ */
+async function renderHQ(idx) {
+  const ventures = idx.ventures || [];
+  const snaps = await Promise.all(ventures.map(snapshot));
+  const aSlug = activeSlug(idx);
+  const active = snaps.find((s) => s.v.slug === aSlug) || snaps[0];
+
+  // aggregates across the portfolio
+  const earned = snaps.reduce((n, s) => n + amount(s.revCurrent), 0);
+  const leadsInPlay = LS.get(vkey(aSlug, 'pipeline'), []).filter((l) => l.stage !== 'Won').length;
+  const streak = LS.get(vkey(aSlug, 'streak'), { count: 0, last: '' });
+  const decisions = snaps.filter((s) => s.decision);
+
+  // what moved recently, across every venture
+  const moved = [];
+  snaps.forEach((s) => LS.get(vkey(s.v.slug, 'captures'), []).forEach((c) => moved.push({ date: c.date, text: c.text, who: s.v.short })));
+  moved.sort((a, b) => (a.date < b.date ? 1 : -1));
+  const movedHtml = moved.slice(0, 3).map((c) => `<li><span class="d">${esc(c.date)}</span><span class="who">${esc(c.who)}</span>${esc(c.text)}</li>`).join('');
+
+  const attn = active ? `
+    <section class="hq-attention">
+      <p class="eyebrow">${ic('target')} Needs you today</p>
+      <a class="attn-card" href="#/v/${esc(active.v.slug)}">
+        <div class="attn-venture">${esc(active.v.short)} · today's focus</div>
+        <h2 class="attn-win">${active.objective ? mdInline(shortObjective(active.objective)) : 'Set today’s objective'}</h2>
+        ${active.action ? `<p class="attn-action">${ic('arrow')} ${mdInline(active.action.split('. ')[0])}</p>` : ''}
+        <span class="attn-go">Enter workspace ${ic('arrow')}</span>
+      </a>
+    </section>` : '';
+
+  const decisionHtml = decisions.length ? `
+    <section class="hq-decisions">
+      <p class="eyebrow">${ic('warn')} Decisions waiting</p>
+      ${decisions.map((s) => `<a class="note note--watch hq-dec" href="#/v/${esc(s.v.slug)}">${ic('warn')}<span><b>${esc(s.v.short)}.</b> ${mdInline(s.decision)}</span></a>`).join('')}
+    </section>` : '';
+
+  const cards = snaps.map((s) => {
+    const isActive = s.v.slug === aSlug;
+    const isIdea = String(s.state).toLowerCase() === 'idea';
+    const typeIcon = TYPE_ICON[s.v.type] || 'layers';
+    let cta;
+    if (isActive) cta = `<span class="pill pill--good">Today’s focus</span>`;
+    else if (isIdea) cta = `<span class="switch-note">Validate before activating</span>`;
+    else cta = `<button class="btn-switch" type="button" data-switch="${esc(s.v.slug)}" data-name="${esc(s.v.short)}">Make today’s focus</button>`;
+    return `
+      <article class="vcard ${isActive ? 'vcard--active' : ''}" style="--vc:var(--${s.v.accent || 'primary'})">
+        <a class="vcard-open" href="#/v/${esc(s.v.slug)}">
+          <div class="vcard-top"><span class="vtype">${ic(typeIcon)} ${esc(s.v.type || '')}</span><span class="vstate">${esc(s.state)}</span></div>
+          <h3 class="vcard-name">${esc(s.v.short)}</h3>
+          <p class="vcard-tag">${esc(s.v.tagline || s.objective || '')}</p>
+          <span class="vcard-go">Enter ${ic('arrow')}</span>
+        </a>
+        <div class="vcard-foot">${cta}</div>
+      </article>`;
+  }).join('');
 
   app().innerHTML = `
-    <div class="mission">
-      <p class="mission-greeting">${greeting()}, Bhanu.</p>
-      <p class="eyebrow">${ic('target')} ${esc(ventureName)}${state ? ` · ${esc(state)}` : ''}</p>
-      <div class="stats standing" style="--n:3">
-        <div class="stat"><div class="big">${streak.count}</div><div class="lbl">Day streak</div><div class="sub">Real progress, daily</div></div>
-        <div class="stat" style="--cat:var(--c3)"><div class="big">${leadsInPlay}</div><div class="lbl">Leads in play</div><div class="sub">In your pipeline</div></div>
-        <div class="stat" style="--cat:var(--c2)"><div class="big">${esc(revCurrent || '₹0')}</div><div class="lbl">of ${esc(revTarget || '—')}</div><div class="sub">Toward your milestone</div></div>
+    <div class="hq">
+      <header class="hq-head">
+        <p class="hq-greeting">${greeting()}, Bhanu.</p>
+        <h1 class="hq-title">Your company</h1>
+        <p class="hq-sub">${ventures.length} venture${ventures.length === 1 ? '' : 's'} · today you’re driving <b>${esc(active ? active.v.short : '—')}</b>. Choose where your attention goes, then go deep in one.</p>
+      </header>
+
+      <div class="stats" style="--n:3">
+        <div class="stat"><div class="big">${streak.count}</div><div class="lbl">Day streak</div><div class="sub">On ${esc(active ? active.v.short : 'your focus')}</div></div>
+        <div class="stat" style="--cat:var(--c3)"><div class="big">${leadsInPlay}</div><div class="lbl">Leads in play</div><div class="sub">In the active pipeline</div></div>
+        <div class="stat" style="--cat:var(--c2)"><div class="big">${esc(inr(earned))}</div><div class="lbl">Earned</div><div class="sub">Across all ventures</div></div>
       </div>
-      ${decision ? `<div class="note note--watch">${ic('warn')}<span><b>A decision is waiting.</b> ${mdInline(decision)}</span></div>` : ''}
-      <h1 class="mission-win">${mdInline(shortWin)}</h1>
-      <p class="mission-meaning">${success ? mdInline(success) : mdInline(win)}</p>
+
+      ${attn}
+      ${decisionHtml}
+
+      <section class="hq-ventures">
+        <div class="sec-head"><p class="eyebrow">${ic('grid')} Your ventures</p><h2>The portfolio</h2><p>Every venture is its own room. Enter one and everything adapts to it. Switching focus is a deliberate act — nothing is ever lost.</p></div>
+        <div class="vgrid">${cards}</div>
+      </section>
+
+      ${movedHtml ? `<section class="hq-moved"><p class="eyebrow">${ic('activity')} What moved recently</p><ul class="moved">${movedHtml}</ul></section>` : ''}
+    </div>`;
+
+  document.querySelectorAll('.btn-switch').forEach((b) => b.addEventListener('click', (e) => {
+    e.preventDefault();
+    const slug = b.getAttribute('data-switch'), name = b.getAttribute('data-name');
+    const cur = active ? active.v.short : 'your current venture';
+    if (window.confirm(`Switch today’s focus to ${name}?\n\n${cur} will be paused — nothing is lost, you can switch back anytime.`)) {
+      LS.set('vos:active', slug); renderHQ(STATE.idx);
+    }
+  }));
+
+  document.title = 'Venture OS — HQ'; window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   VENTURE WORKSPACE — context-aware cockpit for one venture.
+   ============================================================ */
+async function renderWorkspace(idx, slug) {
+  const v = ventureBySlug(idx, slug);
+  if (!v) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>That venture isn’t in the portfolio. <a href="#/">Back to HQ</a>.</span></div></article>`; return; }
+  const s = await snapshot(v);
+  const isActive = activeSlug(idx) === slug;
+  const isLearning = (v.type || '').toLowerCase().includes('learning');
+  const t = todayKey();
+
+  // per-venture working state
+  const captures = LS.get(vkey(slug, 'captures'), []);
+  const pipe = LS.get(vkey(slug, 'pipeline'), []);
+  const leadsInPlay = pipe.filter((l) => l.stage !== 'Won').length;
+  const wonToday = captures.some((c) => c.date === t);
+  const checks = Object.assign({ act: false, second: false }, (LS.get(vkey(slug, 'checks'), {})[t]) || {});
+  const streak = LS.get(vkey(slug, 'streak'), { count: 0, last: '' });
+
+  const actionShort = (s.action.split('. ')[0] || s.action).trim() || 'Take the next step';
+  const secondLabel = isLearning ? 'Finish one practice rep' : 'Move one lead forward';
+  const steps = [
+    { id: 'act', label: actionShort, on: !!checks.act },
+    { id: 'second', label: secondLabel, on: !!checks.second },
+    { id: 'log', label: 'Capture today’s win', on: wonToday, locked: true }
+  ];
+  const done = steps.filter((x) => x.on).length, pct = Math.round(done / steps.length * 100);
+
+  const modules = (v.modules || []).map((mod) => `<a class="tile" href="#/doc/${encodeURIComponent(mod.path)}" style="--dc:var(--${mod.accent || v.accent || 'primary'})"><div class="tn">${ic(mod.icon || 'book')} OPEN</div><div class="tt">${esc(mod.title)}</div>${mod.desc ? `<div class="td">${esc(mod.desc)}</div>` : ''}<div class="go">Open ${ic('arrow')}</div></a>`).join('');
+  const pipeTile = `<a class="tile" href="#/v/${esc(slug)}/pipeline" style="--dc:var(--c3)"><div class="tn">${ic('cash')} TRACK</div><div class="tt">Pipeline</div><div class="td">Leads & opportunities${leadsInPlay ? ` · ${leadsInPlay} in play` : ''}</div><div class="go">Open ${ic('arrow')}</div></a>`;
+
+  const recent = captures.slice(-3).reverse().map((c) => `<li><span class="d">${esc(c.date)}</span>${esc(c.text)}</li>`).join('');
+  const detail = [s.why ? `<p><b>Why it matters.</b> ${mdInline(s.why)}</p>` : '', s.proof ? `<p><b>The proof you’re after.</b> ${mdInline(s.proof)}</p>` : ''].join('');
+  const typeIcon = TYPE_ICON[v.type] || 'layers';
+
+  app().innerHTML = `
+    <div class="ws">
+      <div class="ws-bar">
+        <a class="ws-back" href="#/">${ic('arrow')} HQ</a>
+        ${isActive ? `<span class="pill pill--good">Today’s focus</span>` : `<button class="btn-switch sm" type="button" data-switch="${esc(slug)}" data-name="${esc(v.short)}">Make today’s focus</button>`}
+      </div>
+
+      <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
+        <p class="eyebrow">${ic(typeIcon)} ${esc(v.type || '')} · ${esc(s.state)}</p>
+        <h1 class="ws-name">${esc(s.name)}</h1>
+        ${v.tagline ? `<p class="ws-tag">${esc(v.tagline)}</p>` : ''}
+      </header>
+
+      <div class="stats" style="--n:3">
+        <div class="stat"><div class="big">${streak.count}</div><div class="lbl">Day streak</div><div class="sub">Finished work, daily</div></div>
+        <div class="stat" style="--cat:var(--c3)"><div class="big">${leadsInPlay}</div><div class="lbl">${isLearning ? 'Opportunities' : 'Leads in play'}</div><div class="sub">In this venture</div></div>
+        <div class="stat" style="--cat:var(--c2)"><div class="big">${esc(s.revCurrent || '₹0')}</div><div class="lbl">of ${esc(s.revTarget || '—')}</div><div class="sub">Toward the target</div></div>
+      </div>
+
+      <h2 class="mission-win">${s.objective ? mdInline(shortObjective(s.objective)) : 'Set today’s objective'}</h2>
+      <p class="mission-meaning">${s.success ? mdInline(s.success) : (s.objective ? mdInline(s.objective) : '')}</p>
       ${detail ? `<button class="ma-toggle" type="button" aria-expanded="false">Why this matters ${ic('chevron')}</button><div class="ma-detail">${detail}</div>` : ''}
 
       <section class="plan">
         <p class="eyebrow">${ic('check')} Today’s plan · ${done}/${steps.length}</p>
         <div class="plan-bar"><i style="width:${pct}%"></i></div>
-        ${steps.map((s) => `<div class="check-item ${s.on ? 'on' : ''}" ${s.locked ? '' : `data-step="${s.id}"`}><span class="box">${ic('check')}</span> ${esc(s.label)}</div>`).join('')}
+        ${steps.map((x) => `<div class="check-item ${x.on ? 'on' : ''}" ${x.locked ? '' : `data-step="${x.id}"`}><span class="box">${ic('check')}</span> ${esc(x.label)}</div>`).join('')}
       </section>
 
       <section class="capture-box">
         <p class="eyebrow">${ic('plus')} Capture a win</p>
-        <div class="capture-row"><input id="vos-cap-input" placeholder="What moved forward today?" autocomplete="off"><button id="vos-cap-save" type="button">Save</button></div>
+        <div class="capture-row"><input id="vos-cap-input" placeholder="What moved forward in ${esc(v.short)} today?" autocomplete="off"><button id="vos-cap-save" type="button">Save</button></div>
         ${recent ? `<ul class="recent">${recent}</ul>` : ''}
       </section>
 
-      <div class="launchpads">
-        <a class="launch" href="#/pipeline">${ic('cash')} Pipeline${pipeCount ? ` · ${pipeCount}` : ''}</a>
-        <a class="launch" href="https://web.whatsapp.com/" target="_blank" rel="noopener">${ic('arrow')} Message on WhatsApp</a>
-        <a class="launch" href="${research}" target="_blank" rel="noopener">${ic('compass')} Research references</a>
-      </div>
+      <section class="ws-modules">
+        <p class="eyebrow">${ic('layers')} Workspace</p>
+        <div class="cardgrid">${modules}${pipeTile}</div>
+      </section>
 
-      <div class="mission-progress"><p class="eyebrow">${ic('activity')} The journey</p><div class="track statepath">${path}</div></div>
+      <div class="mission-progress"><p class="eyebrow">${ic('activity')} The journey</p><div class="track statepath">${statePath(s.state)}</div></div>
+      ${revBlockHtml(s.revTarget, s.revCurrent)}
     </div>`;
 
   const tog = document.querySelector('.ma-toggle');
   if (tog) tog.addEventListener('click', () => { const o = tog.getAttribute('aria-expanded') === 'true'; tog.setAttribute('aria-expanded', String(!o)); tog.innerHTML = (o ? 'Why this matters ' : 'Hide ') + ic('chevron'); });
 
   document.querySelectorAll('.check-item[data-step]').forEach((el) => el.addEventListener('click', () => {
-    const id = el.getAttribute('data-step'); const c = LS.get('vos:checks', {}); c[t] = Object.assign({}, c[t]); c[t][id] = !c[t][id]; LS.set('vos:checks', c); renderMission(STATE.idx);
+    const id = el.getAttribute('data-step'); const c = LS.get(vkey(slug, 'checks'), {}); c[t] = Object.assign({}, c[t]); c[t][id] = !c[t][id]; LS.set(vkey(slug, 'checks'), c); renderWorkspace(STATE.idx, slug);
   }));
-
   const save = document.getElementById('vos-cap-save'), inp = document.getElementById('vos-cap-input');
-  const doSave = () => { const v = (inp.value || '').trim(); if (!v) { inp.focus(); return; } const list = LS.get('vos:captures', []); list.push({ date: t, text: v }); LS.set('vos:captures', list); registerWin(); renderMission(STATE.idx); };
+  const doSave = () => { const val = (inp.value || '').trim(); if (!val) { inp.focus(); return; } const list = LS.get(vkey(slug, 'captures'), []); list.push({ date: t, text: val }); LS.set(vkey(slug, 'captures'), list); registerWin(slug); renderWorkspace(STATE.idx, slug); };
   if (save) save.addEventListener('click', doSave);
   if (inp) inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSave(); });
+  document.querySelectorAll('.btn-switch').forEach((b) => b.addEventListener('click', () => {
+    const sl = b.getAttribute('data-switch'), nm = b.getAttribute('data-name');
+    if (window.confirm(`Switch today’s focus to ${nm}?\n\nNothing is lost — you can switch back anytime.`)) { LS.set('vos:active', sl); renderWorkspace(STATE.idx, slug); }
+  }));
 
-  document.title = 'Venture OS';
-  window.scrollTo(0, 0);
+  document.title = s.name + ' — Venture OS'; window.scrollTo(0, 0);
 }
 
+/* ============================================================
+   PIPELINE — scoped to a single venture.
+   ============================================================ */
 const PIPE_STAGES = ['To reach', 'In talks', 'Won'];
-function renderPipeline() {
-  const leads = LS.get('vos:pipeline', []);
+function renderPipeline(idx, slug) {
+  const v = ventureBySlug(idx, slug);
+  if (!v) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>Unknown venture. <a href="#/">Back to HQ</a>.</span></div></article>`; return; }
+  const key = vkey(slug, 'pipeline');
+  const leads = LS.get(key, []);
   const counts = PIPE_STAGES.map((st) => leads.filter((l) => l.stage === st).length);
   const tone = ['c3', 'c2', 'primary'];
   const stats = PIPE_STAGES.map((st, i) => `<div class="stat" style="--cat:var(--${tone[i]})"><div class="big">${counts[i]}</div><div class="lbl">${esc(st)}</div></div>`).join('');
@@ -151,14 +311,15 @@ function renderPipeline() {
     return `<section><div class="sec-head"><p class="eyebrow">${counts[si]} · ${esc(st)}</p></div><article class="card">${rows || `<p class="lead-empty">Nothing here yet.</p>`}</article></section>`;
   }).join('');
   app().innerHTML = `
-    <header class="hero"><p class="eyebrow">${ic('cash')} Pipeline</p><h1>Who you\u2019re chasing</h1><p class="lede">Your leads, from first contact to paid. Move one forward every day.</p></header>
+    <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a></div>
+    <header class="hero"><p class="eyebrow">${ic('cash')} Pipeline · ${esc(v.short)}</p><h1>Who you’re chasing</h1><p class="lede">Leads for this venture only — from first contact to paid. Move one forward every day.</p></header>
     <div class="stats" style="--n:3">${stats}</div>
     <article class="card">
       <div class="card-title"><span class="ico">${ic('plus')}</span><div><h3>Add a lead</h3></div></div>
       <div class="lead-form">
-        <input id="pl-name" placeholder="Hotel / caf\u00e9 name (or codename)" autocomplete="off">
-        <input id="pl-type" placeholder="Type \u2014 e.g. boutique hotel" autocomplete="off">
-        <input id="pl-next" placeholder="Next action \u2014 e.g. send the free-reel offer" autocomplete="off">
+        <input id="pl-name" placeholder="Name or codename" autocomplete="off">
+        <input id="pl-type" placeholder="Type — e.g. boutique hotel / couple / studio" autocomplete="off">
+        <input id="pl-next" placeholder="Next action — e.g. send the free-reel offer" autocomplete="off">
         <button id="pl-add" type="button">Add to pipeline</button>
       </div>
     </article>
@@ -166,21 +327,21 @@ function renderPipeline() {
   const add = document.getElementById('pl-add');
   if (add) add.addEventListener('click', () => {
     const name = (document.getElementById('pl-name').value || '').trim(); if (!name) { document.getElementById('pl-name').focus(); return; }
-    const list = LS.get('vos:pipeline', []);
+    const list = LS.get(key, []);
     list.push({ id: Date.now(), name, type: (document.getElementById('pl-type').value || '').trim(), next: (document.getElementById('pl-next').value || '').trim(), stage: 'To reach' });
-    LS.set('vos:pipeline', list); renderPipeline();
+    LS.set(key, list); renderPipeline(STATE.idx, slug);
   });
   document.querySelectorAll('.adv').forEach((b) => b.addEventListener('click', () => {
-    const id = Number(b.getAttribute('data-id')); const list = LS.get('vos:pipeline', []); const l = list.find((x) => x.id === id);
-    if (l) { const i = PIPE_STAGES.indexOf(l.stage); l.stage = PIPE_STAGES[Math.min(i + 1, PIPE_STAGES.length - 1)]; LS.set('vos:pipeline', list); renderPipeline(); }
+    const id = Number(b.getAttribute('data-id')); const list = LS.get(key, []); const l = list.find((x) => x.id === id);
+    if (l) { const i = PIPE_STAGES.indexOf(l.stage); l.stage = PIPE_STAGES[Math.min(i + 1, PIPE_STAGES.length - 1)]; LS.set(key, list); renderPipeline(STATE.idx, slug); }
   }));
   document.querySelectorAll('.del').forEach((b) => b.addEventListener('click', () => {
-    const id = Number(b.getAttribute('data-id')); LS.set('vos:pipeline', LS.get('vos:pipeline', []).filter((x) => x.id !== id)); renderPipeline();
+    const id = Number(b.getAttribute('data-id')); LS.set(key, LS.get(key, []).filter((x) => x.id !== id)); renderPipeline(STATE.idx, slug);
   }));
-  document.title = 'Pipeline \u00b7 Venture OS'; window.scrollTo(0, 0);
+  document.title = 'Pipeline · ' + v.short; window.scrollTo(0, 0);
 }
 
-/* --- Library: the founder's playbook --- */
+/* --- Library: the OS knowledge shelf (summoned, not daily) --- */
 function tile(d) {
   return `<a class="tile" href="#/doc/${encodeURIComponent(d.path)}" style="--dc:var(--${d.accent || 'primary'})"><div class="tn">${esc((d.category || '').toUpperCase())} ${ic('arrow')}</div><div class="tt">${esc(d.title)}</div>${d.desc ? `<div class="td">${esc(d.desc)}</div>` : ''}<div class="go">Open ${ic('arrow')}</div></a>`;
 }
@@ -188,27 +349,37 @@ async function renderKnowledge(idx) {
   const nav = idx.nav || [], groups = {};
   nav.forEach((d) => { const c = d.category || 'Reference'; (groups[c] = groups[c] || []).push(d); });
   const order = [...CATEGORY_ORDER.filter((c) => groups[c]), ...Object.keys(groups).filter((c) => !CATEGORY_ORDER.includes(c))];
-  const sections = order.map((c) => `<section><div class="sec-head"><p class="eyebrow">${ic(CATEGORY_ICON[c] || 'book')} ${esc(c)}</p><h2>${c === 'Playbook' ? 'Your playbook' : esc(c)}</h2></div><article class="card"><div class="cardgrid">${groups[c].map(tile).join('')}</div></article></section>`).join('');
-  app().innerHTML = `<header class="hero"><p class="eyebrow">${ic('book')} Library</p><h1>Everything you’re building on</h1><p class="lede">Your venture’s playbook up top; the thinking behind Venture OS below.</p></header>${sections}`;
+  const sections = order.map((c) => `<section><div class="sec-head"><p class="eyebrow">${ic(CATEGORY_ICON[c] || 'book')} ${esc(c)}</p><h2>${esc(c)}</h2></div><article class="card"><div class="cardgrid">${groups[c].map(tile).join('')}</div></article></section>`).join('');
+  app().innerHTML = `<header class="hero"><p class="eyebrow">${ic('book')} Library</p><h1>The thinking behind Venture OS</h1><p class="lede">Doctrine and system specs. Venture playbooks live inside each venture’s workspace.</p></header>${sections}`;
   document.title = 'Library · Venture OS'; window.scrollTo(0, 0);
 }
-async function renderDoc(path) {
+async function renderDoc(idx, path) {
   app().innerHTML = `<article class="card"><p class="lead">${ic('clock')} Opening &hellip;</p></article>`;
+  const back = (function () {
+    const sl = slugFromPath(path); const v = sl && ventureBySlug(idx, sl);
+    return v ? `<a href="#/v/${esc(sl)}">${ic('arrow')}<span class="dir">Back to</span><span class="ttl">${esc(v.short)}</span></a>` : `<a href="#/">${ic('grid')}<span class="dir">Back to</span><span class="ttl">HQ</span></a>`;
+  })();
   try {
     const r = await fetch(path, { cache: 'no-cache' }); if (!r.ok) throw 0; const md = await r.text();
-    app().innerHTML = `<div class="pagenav"><a href="#/">${ic('target')}<span class="dir">Back to</span><span class="ttl">Mission</span></a><a href="#/knowledge">${ic('book')}<span class="dir">Open</span><span class="ttl">Library</span></a></div><article class="card"><div class="doc-body">${mdBlock(md)}</div></article><div class="pagenav"><a href="#/">${ic('arrow')}<span class="dir">Back to</span><span class="ttl">Mission</span></a></div>`;
+    app().innerHTML = `<div class="pagenav">${back}<a href="#/knowledge">${ic('book')}<span class="dir">Open</span><span class="ttl">Library</span></a></div><article class="card"><div class="doc-body">${mdBlock(md)}</div></article><div class="pagenav">${back}</div>`;
     document.title = 'Venture OS'; window.scrollTo(0, 0);
   } catch (e) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>That page isn’t available.</span></div></article>`; }
 }
+
 function setActiveNav(name) { document.querySelectorAll('.topbar .nav a[data-nav]').forEach((a) => a.classList.toggle('active', a.getAttribute('data-nav') === name)); }
 async function route() {
   const h = location.hash || '#/'; const idx = await loadIndex();
-  if (h.startsWith('#/doc/')) { await renderDoc(decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
-  else if (h.startsWith('#/pipeline')) { renderPipeline(); setActiveNav('pipeline'); }
-  else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('knowledge'); }
-  else { await renderMission(idx); setActiveNav('mission'); }
+  if (h.startsWith('#/doc/')) { await renderDoc(idx, decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
+  else if (h.startsWith('#/v/')) {
+    const rest = h.slice('#/v/'.length); const parts = rest.split('/'); const slug = decodeURIComponent(parts[0]);
+    if (parts[1] === 'pipeline') renderPipeline(idx, slug); else await renderWorkspace(idx, slug);
+    setActiveNav(null);
+  }
+  else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('library'); }
+  else { await renderHQ(idx); setActiveNav('hq'); }
 }
 window.addEventListener('hashchange', route);
 function showUpdate() { if (document.getElementById('vos-update')) return; const b = document.createElement('div'); b.id = 'vos-update'; b.className = 'note note--you'; b.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:100;max-width:560px;margin:0 auto;cursor:pointer;box-shadow:var(--shadow)'; b.innerHTML = '<svg class="ic"><use href="#i-info"/></svg><span><b>Update available.</b> Tap to refresh.</span>'; b.onclick = () => location.reload(); document.body.appendChild(b); }
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; if (nw) nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(); }); }); }).catch(() => {}); }); }
+migrate();
 route();

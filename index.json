@@ -1,11 +1,40 @@
 {
-  "version": 1,
+  "version": 2,
   "activeVenture": "ventures/venture-001-hospitality-media/README.md",
+  "ventures": [
+    {
+      "slug": "venture-001-hospitality-media",
+      "title": "Venture 001 — Hospitality Media",
+      "short": "Hospitality Media",
+      "path": "ventures/venture-001-hospitality-media/README.md",
+      "state": "Validation",
+      "type": "Client venture",
+      "accent": "c2",
+      "tagline": "Food-led media for Shimla hotels & cafés.",
+      "modules": [
+        { "title": "The Offer", "path": "ventures/venture-001-hospitality-media/business/offer.md", "icon": "cash", "accent": "c2", "desc": "Your productized offer & pricing" },
+        { "title": "Ideal Customer", "path": "ventures/venture-001-hospitality-media/business/icp.md", "icon": "target", "accent": "c2", "desc": "Who you sell to, and why they buy" },
+        { "title": "Outreach", "path": "ventures/venture-001-hospitality-media/execution/outreach.md", "icon": "arrow", "accent": "c2", "desc": "How you land the first clients" }
+      ]
+    },
+    {
+      "slug": "venture-002-wedding-films",
+      "title": "Venture 002 — Wedding Films",
+      "short": "Wedding Films",
+      "path": "ventures/venture-002-wedding-films/README.md",
+      "state": "Validation",
+      "type": "Learning venture",
+      "accent": "c4",
+      "tagline": "Master cinematic wedding editing — skill first, income next.",
+      "modules": [
+        { "title": "Curriculum", "path": "ventures/venture-002-wedding-films/learning/curriculum.md", "icon": "layers", "accent": "c4", "desc": "The editing skill ladder" },
+        { "title": "Reference Films", "path": "ventures/venture-002-wedding-films/learning/references.md", "icon": "star", "accent": "c4", "desc": "Films to study by rebuilding" },
+        { "title": "Practice", "path": "ventures/venture-002-wedding-films/learning/practice.md", "icon": "dumbbell", "accent": "c4", "desc": "Editing challenges & reps" },
+        { "title": "Opportunities", "path": "ventures/venture-002-wedding-films/business/opportunities.md", "icon": "cash", "accent": "c4", "desc": "The path to first income" }
+      ]
+    }
+  ],
   "nav": [
-    { "title": "The Offer", "path": "ventures/venture-001-hospitality-media/business/offer.md", "category": "Playbook", "accent": "c2", "desc": "Your productized offer & pricing" },
-    { "title": "Ideal Customer", "path": "ventures/venture-001-hospitality-media/business/icp.md", "category": "Playbook", "accent": "c2", "desc": "Who you sell to, and why they buy" },
-    { "title": "Outreach", "path": "ventures/venture-001-hospitality-media/execution/outreach.md", "category": "Playbook", "accent": "c2", "desc": "How you land the first clients" },
-    { "title": "Today’s Brief", "path": "ventures/venture-001-hospitality-media/mission.md", "category": "Playbook", "accent": "c2", "desc": "The current execution focus" },
     { "title": "How Venture OS Works", "path": "START_HERE.md", "category": "Operating System", "accent": "c1", "desc": "Start here" },
     { "title": "Constitution", "path": "os/CONSTITUTION.md", "category": "Operating System", "accent": "c1", "desc": "How we think and decide" },
     { "title": "Product", "path": "os/PRODUCT.md", "category": "Operating System", "accent": "c3", "desc": "What Venture OS is" },
@@ -13,8 +42,5 @@
     { "title": "Experience", "path": "os/EXPERIENCE_ARCHITECTURE.md", "category": "Operating System", "accent": "c4", "desc": "How the cockpit should feel" },
     { "title": "Decisions", "path": "os/DECISION_LEDGER.md", "category": "Operating System", "accent": "c5", "desc": "Key decisions & rationale" },
     { "title": "Changelog", "path": "os/CHANGELOG.md", "category": "Operating System", "accent": "c5", "desc": "What changed and when" }
-  ],
-  "ventures": [
-    { "title": "Venture 001 — Hospitality Media", "path": "ventures/venture-001-hospitality-media/README.md", "state": "Validation" }
   ]
 }

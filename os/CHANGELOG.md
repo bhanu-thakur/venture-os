@@ -7,6 +7,14 @@
 
 ---
 
+## 2026-06-30 (Founder HQ + multi-venture workspaces — the holding company becomes operable)
+* **The homepage now belongs to the founder, not a venture.** `#/` is **HQ**: greeting + company identity, a single "Needs you today" card (the active venture's objective + next action), decisions waiting across ventures, portfolio stats (streak · leads in play · earned across ventures), the venture grid, and "what moved recently." Mission moved *inside* the venture. This activates the Experience Architecture's **Portfolio tier** (designed to switch on at ≥2 ventures) — no doctrine changed.
+* **Context-aware venture workspaces** at `#/v/<slug>`: each venture is its own room — its own Mission cockpit (objective, plan, capture-a-win, streak), its own **per-venture working layer** (state no longer mixed between ventures), workspace module tiles (its playbook/learning docs), a scoped Pipeline, journey, and revenue. Client vs learning ventures adapt (e.g. "Move one lead forward" vs "Finish one practice rep").
+* **Deliberate focus-switching (anti shiny-object).** Switching today's focus is a confirmed action ("X will be paused — nothing is lost"), stored in the working layer; the repository's `activeVenture` stays the canonical default. Idea-state ventures can't be activated directly ("Validate before activating"). The OS makes switching intentional rather than rewriting the homepage on impulse.
+* **Pipeline is now per-venture** (`#/v/<slug>/pipeline`); legacy global working state auto-migrates into Venture 001 on first load.
+* **Venture 002 — Wedding Films created** (Validation, learning venture): `README`, `mission`, `learning/curriculum · references · practice`, `business/opportunities`. Captured and parked — Venture 001 remains the canonical active focus until its first spec reel exists.
+* `index.json` → v2 (ventures carry slug/type/accent/modules; `nav` is now OS-only). Library reframed to the OS knowledge shelf (venture playbooks live in their workspaces). Topbar: **HQ · Library**. `sw` cache `v11→v12`. Verified locally (jsdom: HQ, both workspaces, switch, scoped pipeline — 0 console errors).
+
 ## 2026-06-29 (Pipeline — the leads you’re chasing)
 * New **Pipeline** experience (working layer, ADR-0018): add a lead (name · type · next action), move it **To reach → In talks → Won**, remove it; live per-stage counts. A Pipeline link + count now surfaces on Mission, tying the daily loop to real outreach. `sw` cache `v8→v9`. Verified locally (jsdom: add / advance / remove persist, 0 errors).
 
