@@ -242,6 +242,41 @@ html.js-reveal .reveal-in{opacity:1!important;transform:none!important}
 .doc-body th,.doc-body td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
 .doc-body th{background:var(--primary-soft);color:var(--primary-deep);font-weight:600;white-space:nowrap}
 .doc-body hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+
+.mission-greeting{font-family:'Inter',system-ui,sans-serif;font-size:.95rem;color:var(--ink-faint);margin:0 0 14px}
+.mission-action{cursor:default}
+.mission-action:hover{transform:none;box-shadow:var(--shadow)}
+.ma-toggle{margin-top:14px;background:none;border:0;padding:0;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.04em;color:var(--primary);display:inline-flex;align-items:center;gap:6px}
+.ma-toggle .ic{width:14px;height:14px;transition:transform .15s ease}
+.ma-toggle[aria-expanded="true"] .ic{transform:rotate(90deg)}
+.ma-detail{display:none;margin-top:4px}
+.ma-toggle[aria-expanded="true"] + .ma-detail{display:block}
+.ma-detail p{margin:8px 0;color:var(--primary-deep);font-size:.95rem;line-height:1.55}
+
+.streak{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;color:var(--watch-ink);background:var(--watch-soft);border-radius:999px;padding:3px 10px;margin-left:10px}
+.streak .ic{width:13px;height:13px}
+.plan{margin-top:34px}
+.plan-bar{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin:12px 0 14px}
+.plan-bar i{display:block;height:100%;background:var(--primary);border-radius:999px;transition:width .3s ease}
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer;color:var(--ink-soft);font-size:.96rem}
+.check-item:first-of-type{border-top:0}
+.check-item .box{width:22px;height:22px;border:1.8px solid var(--line-strong);border-radius:7px;flex:none;display:grid;place-items:center;color:transparent;transition:.12s}
+.check-item .box .ic{width:13px;height:13px}
+.check-item.on .box{background:var(--primary);border-color:var(--primary);color:#fff}
+.check-item.on{color:var(--ink-faint);text-decoration:line-through}
+.capture-box{margin-top:30px;background:var(--primary-soft);border-radius:var(--radius);padding:18px 20px}
+.capture-box .eyebrow{margin-bottom:12px}
+.capture-row{display:flex;gap:8px}
+.capture-box input{flex:1;border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.92rem;background:var(--card);color:var(--ink)}
+.capture-box input:focus{outline:none;border-color:var(--primary)}
+.capture-box button{border:0;background:var(--primary);color:#fff;border-radius:10px;padding:0 18px;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
+.recent{list-style:none;margin:14px 0 0;padding:0}
+.recent li{font-size:.86rem;color:var(--primary-deep);padding:7px 0;border-top:1px solid color-mix(in srgb,var(--primary) 14%,transparent)}
+.recent li .d{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--ink-faint);margin-right:8px}
+.launchpads{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.launch{display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-size:.85rem;font-weight:600;color:var(--ink);box-shadow:var(--shadow)}
+.launch:hover{border-color:var(--primary);color:var(--primary)}
+.launch .ic{width:15px;height:15px;color:var(--primary)}
 </style>
 </head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -280,8 +315,7 @@ html.js-reveal .reveal-in{opacity:1!important;transform:none!important}
 <a class="brand" href="#/"><span class="mark"><svg class="ic"><use href="#i-grid"/></svg></span><span class="bt">Venture OS<small>operating system</small></span></a>
 <nav class="nav">
 <a href="#/" data-nav="mission"><svg class="ic"><use href="#i-target"/></svg> Mission</a>
-<a href="#/knowledge" data-nav="knowledge"><svg class="ic"><use href="#i-layers"/></svg> Knowledge</a>
-<a class="btn" href="https://github.com/bhanu-thakur/venture-os" target="_blank" rel="noopener"><svg class="ic"><use href="#i-book"/></svg> Repo</a>
+<a href="#/knowledge" data-nav="knowledge"><svg class="ic"><use href="#i-book"/></svg> Library</a>
 </nav>
 </div></div>
 <div class="wrap"><main id="app"></main></div>

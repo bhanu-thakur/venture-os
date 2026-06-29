@@ -1,22 +1,22 @@
 # NEXT ACTION QUEUE
 
 ## Current Status
-Build Phase → **Implementation & real-usage era** (all foundational docs frozen). Live cockpit: https://bhanu-thakur.github.io/venture-os/
-Active venture: **Venture 001 — Hospitality Media** (State: **Validation**) → `ventures/venture-001-hospitality-media/`
+Implementation era. Success metric: **would Bhanu open Venture OS every morning instead of WhatsApp / Notion / GitHub?**
+Live cockpit: https://bhanu-thakur.github.io/venture-os/ · Active venture: **Venture 001 — Hospitality Media** (Validation).
 
-Cockpit: Phase 0 shell ✅ · Knowledge ✅ · migration ✅ · **Mission (complete daily experience) ✅** · Experience Architecture v1.0 frozen ✅
-Mission now carries the full daily loop: orientation · the win · the one action · since-last-time · capture · decision-if-waiting · journey · revenue.
+Mission is now an **interactive cockpit** (ADR-0018, working layer): today’s plan (check off + streak), capture-a-win that saves, launch pads (WhatsApp · research), the journey, revenue.
 
-## Active Focus — Venture 001 (founder execution)
-* The cockpit's next action: **shoot the first food-led spec reel** — one proof piece to anchor outreach.
-* Then: value-first outreach to boutique / mid-range Shimla hotels. Revenue target: ₹50,000.
+## Active Focus — Venture 001
+* Shoot the first food-led spec reel → capture the win in the cockpit (start the streak).
+* Then value-first outreach to boutique / mid-range Shimla hotels. Revenue target: ₹50,000.
 
 ## Workflow
-Edit local clone → verify locally → present → stop. Founder commits/pushes via GitHub Desktop. The AI performs no Git operations.
+Edit local clone → verify locally → present → stop. Founder commits/pushes via GitHub Desktop.
 
-## Immediate Tasks
-1. [ ] (Founder) Shoot the first food-led spec reel (the action shown on Mission), then **Capture** the outcome.
-2. [ ] Next build (on direction): **Command Palette** (jump-anywhere) — the next experience per the frozen Experience Architecture build order.
+## Next experiences (build order)
+1. [ ] A real **pipeline** (the leads you’re chasing) — the strongest daily pull; working-layer, repository-committed when it matters.
+2. [ ] Command Palette (jump-anywhere).
+3. [ ] Multi-device: derive “what changed” + working state from repository state.
 
 ## Blockers
 * None.

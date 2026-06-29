@@ -7,6 +7,9 @@
 
 ---
 
+## 2026-06-29 (interactive cockpit — working layer)
+* **Mission becomes a cockpit you operate** (ADR-0018): an interactive **Today’s plan** (check items off, progress bar), **Capture a win** that saves and lists recent wins, a real-progress **streak**, and **launch pads** (Message on WhatsApp · Research references). State persists in the browser working layer; the repository stays the canonical record. `sw` cache `v7→v8`. Verified locally (jsdom: capture saves + streak + checks persist, 0 errors).
+
 ## 2026-06-29 (Mission complete + Experience Architecture frozen)
 * **Experience Architecture v1.0 frozen** as `os/EXPERIENCE_ARCHITECTURE.md` (added to the boot sequence and Knowledge nav). The loop is the product; Mission is the only daily home; Knowledge/Review/Portfolio/Founder/Assets are reference summoned via a future Command Palette.
 * **Mission upgraded to the complete daily experience:** added the **"Since last time"** delta (honest movement from local UI memory vs current repo values), a one-line **Capture** affordance (generates a paste-ready log entry; the founder commits — no in-app persistence), and a **decision beat** that surfaces on Mission when a venture has a pending decision (gated on content). `sw.js` cache `v5→v6`. Verified locally (jsdom, 0 console errors). Aligns with the frozen Experience Architecture.

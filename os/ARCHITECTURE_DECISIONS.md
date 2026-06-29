@@ -105,3 +105,10 @@
 **Context:** Each venture mixes slow identity/business data with fast daily execution.
 **Decision:** Per venture — `README.md` = identity + State (rare); `mission.md` = daily execution; `business/` = slow assets (offer/icp/pricing/positioning); `execution/` = fast assets (pipeline/deliverables/log); `lessons.md`; `assets/` = venture-specific. Reusable assets are **promoted** to `library/templates/`. Folders named `venture-NNN-descriptive`.
 **Consequences:** Clean Git diffs (daily churn isolated), clear slow/fast and business/execution split, a defined asset-promotion flow.
+
+## ADR-0018 — Client-side working layer (interactive cockpit)
+**Status:** Accepted (2026-06-29)
+**Context:** A strictly read-only runtime made Venture OS something the founder reads, then leaves to work in WhatsApp/Notion/GitHub. Success is now measured by *voluntary daily use*; that requires in-app doing with persisted state (as demonstrated by North Stories OS).
+**Decision:** Permit a client-side **working layer** — interactive tools whose state persists in the browser (`localStorage`): the daily plan checks, captured wins, and the progress streak. The **repository remains the canonical record** for durable truth; the founder commits anything that must survive devices/reinstalls. The PWA still has **no backend and makes no runtime AI calls**.
+**Consequences:** Materially stickier — a cockpit you operate, not a page you read. Working-layer state is device-local and non-authoritative; durable truth is still committed to the repository (multi-device version derives from repo state). This relaxes the strict read-only posture for *ephemeral working state* only; the repository-is-source-of-truth principle holds for durable truth.
+
