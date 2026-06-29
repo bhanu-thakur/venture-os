@@ -21,8 +21,11 @@ Edit local clone (`C:\Users\acer\Documents\GitHub\venture-os`) → verify locall
 ## Next experiences (build order)
 1. [x] **Pipeline** (leads you're chasing) — shipped (per-venture).
 2. [x] **Founder HQ + multi-venture workspaces + deliberate switching** — shipped.
-3. [ ] Command Palette (jump-anywhere across ventures, docs, actions).
-4. [ ] Capture-to-commit: generate a paste-ready repo update when a win/lesson is banked, so the working layer flows back to canonical truth.
+3. [x] **Learning Engine** (curriculum as execution: lesson→challenge→deliverable→review, portfolio, progress) — shipped for learning ventures (`#/v/<slug>/learn`).
+4. [ ] Lightweight lead & client tracking inside the lead workflow (log interaction · quote · follow-up).
+5. [ ] Project & deliverable workflow for client execution.
+6. [ ] Weekly review & reflection (playback + one lesson banked).
+7. [ ] Command Palette (jump-anywhere); Capture-to-commit (working layer → canonical repo update).
 
 ## Blockers
 * None.

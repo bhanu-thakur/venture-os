@@ -7,6 +7,13 @@
 
 ---
 
+## 2026-06-30 (Learning Engine — curriculum becomes execution)
+* **Learning is now a first-class workflow, not documentation.** New route `#/v/<slug>/learn` turns a learning venture's `curriculum.md` into a guided loop: the runtime parses each rung into **Lesson → Challenge → Deliverable → Review** and walks the founder one step at a time. The "45 free minutes" answer: a single **Do this now** focal action surfaces the next incomplete step.
+* **Built for doing, not reading.** Each rung is a four-step checklist (study → do the real challenge → ship the deliverable → review). Completing a rung **banks a portfolio piece** (with an optional link/note), **registers a streak win** (finished work counts), and opens the next rung. A progress track shows shipped vs current vs upcoming rungs; a portfolio list shows every piece shipped.
+* **Curriculum.md restructured** to be both human-readable and machine-parseable (per-rung Lesson/Challenge/Deliverable/Review fields) — Markdown stays the source of truth; the app derives the runtime (no new data format, ADR-0015 honoured).
+* **Workspace wiring:** learning ventures now show a prominent **Continue learning** card (current rung · next step · pieces shipped) above the daily plan. Per-venture working layer holds learning progress (`vos:<slug>:learn`).
+* `sw` cache `v12→v13`. Verified: curriculum parser + rung state machine unit-tested (12/12 — parses 5 rungs, ignores prose, completes a rung → banks a portfolio piece, advances, clamps at last rung); `app.js` syntax-checked (`node --check`, incl. the full `renderLearn` block); `index.html` structure reviewed clean.
+
 ## 2026-06-30 (Founder HQ + multi-venture workspaces — the holding company becomes operable)
 * **The homepage now belongs to the founder, not a venture.** `#/` is **HQ**: greeting + company identity, a single "Needs you today" card (the active venture's objective + next action), decisions waiting across ventures, portfolio stats (streak · leads in play · earned across ventures), the venture grid, and "what moved recently." Mission moved *inside* the venture. This activates the Experience Architecture's **Portfolio tier** (designed to switch on at ≥2 ventures) — no doctrine changed.
 * **Context-aware venture workspaces** at `#/v/<slug>`: each venture is its own room — its own Mission cockpit (objective, plan, capture-a-win, streak), its own **per-venture working layer** (state no longer mixed between ventures), workspace module tiles (its playbook/learning docs), a scoped Pipeline, journey, and revenue. Client vs learning ventures adapt (e.g. "Move one lead forward" vs "Finish one practice rep").

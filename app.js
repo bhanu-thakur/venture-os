@@ -202,6 +202,7 @@ async function renderWorkspace(idx, slug) {
   const s = await snapshot(v);
   const isActive = activeSlug(idx) === slug;
   const isLearning = (v.type || '').toLowerCase().includes('learning');
+  const lsum = isLearning ? await learnSummary(v) : null;
   const t = todayKey();
 
   // per-venture working state
@@ -251,6 +252,8 @@ async function renderWorkspace(idx, slug) {
       <p class="mission-meaning">${s.success ? mdInline(s.success) : (s.objective ? mdInline(s.objective) : '')}</p>
       ${detail ? `<button class="ma-toggle" type="button" aria-expanded="false">Why this matters ${ic('chevron')}</button><div class="ma-detail">${detail}</div>` : ''}
 
+      ${lsum ? `<a class="learn-cta" href="#/v/${esc(slug)}/learn"><div class="lc-top">${ic('bulb')} Continue learning · Rung ${lsum.current + 1} of ${lsum.total}${lsum.shipped ? ` · ${lsum.shipped} shipped` : ''}</div><div class="lc-title">${esc(lsum.rungTitle)}</div><div class="lc-next">${ic('arrow')} ${esc(lsum.nextLabel)}</div></a>` : ''}
+
       <section class="plan">
         <p class="eyebrow">${ic('check')} Today’s plan · ${done}/${steps.length}</p>
         <div class="plan-bar"><i style="width:${pct}%"></i></div>
@@ -288,6 +291,92 @@ async function renderWorkspace(idx, slug) {
   }));
 
   document.title = s.name + ' — Venture OS'; window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   LEARNING ENGINE — curriculum as execution (learning ventures).
+   The repository's curriculum.md is the source of truth; the runtime
+   parses it into rungs and walks the founder through one loop at a time:
+   learn -> do the real challenge -> ship a portfolio piece -> review.
+   ============================================================ */
+const LEARN_STEPS = [
+  { id: 'studied', verb: 'Study the lesson', field: 'lesson' },
+  { id: 'challenge', verb: 'Do the challenge', field: 'challenge' },
+  { id: 'shipped', verb: 'Ship the deliverable', field: 'deliverable' },
+  { id: 'reviewed', verb: 'Review your work', field: 'review' }
+];
+function curriculumPath(v) { const m = ((v && v.modules) || []).find((x) => /curriculum\.md$/.test(x.path)); return m ? m.path : ''; }
+function parseCurriculum(md) {
+  const lines = (md || '').split('\n');
+  const fld = (blk, name) => { const m = blk.match(new RegExp('\\*\\*' + name + ':?\\*\\*\\s*([^\\n]+)')); return m ? m[1].trim() : ''; };
+  const idxs = []; lines.forEach((l, i) => { if (/^##\s+Rung\b/i.test(l)) idxs.push(i); });
+  return idxs.map((start, k) => {
+    const end = (k + 1 < idxs.length) ? idxs[k + 1] : lines.length;
+    const head = lines[start].replace(/^##\s+/, '').trim();
+    const title = head.replace(/^Rung\s+\d+\s*[—-]\s*/i, '').trim() || head;
+    const blk = lines.slice(start, end).join('\n');
+    return { title, head, lesson: fld(blk, 'Lesson'), challenge: fld(blk, 'Challenge'), deliverable: fld(blk, 'Deliverable'), review: fld(blk, 'Review') };
+  });
+}
+function getLearn(slug) { return Object.assign({ current: 0, steps: {}, portfolio: [] }, LS.get(vkey(slug, 'learn'), {})); }
+function setLearn(slug, v) { LS.set(vkey(slug, 'learn'), v); }
+async function learnSummary(v) {
+  const p = curriculumPath(v); if (!p) return null;
+  const rungs = parseCurriculum(await fetchText(p) || ''); if (!rungs.length) return null;
+  const st = getLearn(v.slug), cur = Math.min(st.current || 0, rungs.length - 1), steps = st.steps[cur] || {};
+  const allDone = (st.portfolio || []).length >= rungs.length;
+  const next = LEARN_STEPS.find((s) => !steps[s.id]);
+  return { total: rungs.length, current: cur, rungTitle: rungs[cur].title, nextLabel: allDone ? 'Curriculum complete' : (next ? next.verb : 'Complete this rung'), shipped: (st.portfolio || []).length, allDone };
+}
+
+async function renderLearn(idx, slug) {
+  const v = ventureBySlug(idx, slug); const p = v && curriculumPath(v);
+  if (!v || !p) { app().innerHTML = `<div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} back</a></div><article class="card"><div class="note note--warn">${ic('warn')}<span>No curriculum for this venture yet.</span></div></article>`; return; }
+  const rungs = parseCurriculum(await fetchText(p) || '');
+  if (!rungs.length) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>Curriculum couldn’t be read.</span></div></article>`; return; }
+  const st = getLearn(slug), cur = Math.min(st.current || 0, rungs.length - 1), rung = rungs[cur];
+  const steps = Object.assign({}, st.steps[cur] || {});
+  const doneCount = LEARN_STEPS.filter((s) => steps[s.id]).length, ready = doneCount === LEARN_STEPS.length;
+  const focal = LEARN_STEPS.find((s) => !steps[s.id]);
+  const allShipped = (st.portfolio || []).length >= rungs.length;
+  const t = todayKey();
+
+  const track = rungs.map((r, i) => { const shipped = (st.portfolio || []).some((x) => x.rung === i); const cls = shipped ? 'seg--good' : (i === cur ? 'seg--watch' : 'seg--flat'); return `<div class="seg ${cls}" style="flex:1"><span class="sname">${i + 1}</span></div>`; }).join('');
+  const portfolio = (st.portfolio || []).slice().reverse().map((x) => `<li><span class="d">${esc(x.date)}</span><span class="who">Rung ${x.rung + 1}</span>${esc(x.title)}${x.note ? ` — ${esc(x.note)}` : ''}</li>`).join('');
+
+  const focalHtml = allShipped
+    ? `<div class="learn-focal done"><p class="lf-label">${ic('star')} Curriculum complete</p><p class="lf-verb">You’ve shipped all ${rungs.length} rungs.</p><p class="lf-body">Take paid work or a second-shooter slot — or revisit a rung to sharpen it.</p></div>`
+    : `<div class="learn-focal"><p class="lf-label">${ic('target')} Do this now</p><p class="lf-verb">${esc((focal || { verb: 'Complete this rung' }).verb)}</p><p class="lf-body">${mdInline((focal ? rung[focal.field] : '') || 'All four steps are done — complete the rung below to bank the piece.')}</p>${focal ? `<button class="lf-do" type="button" data-do="${focal.id}">Mark done ${ic('check')}</button>` : ''}</div>`;
+
+  app().innerHTML = `
+    <div class="ws">
+      <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a><span class="pill pill--brand">Rung ${cur + 1} of ${rungs.length}</span></div>
+      <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
+        <p class="eyebrow">${ic('bulb')} Learning · ${esc(v.short)}</p>
+        <h1 class="ws-name">${esc(rung.title)}</h1>
+      </header>
+      <div class="mission-progress"><div class="track statepath learn-track">${track}</div></div>
+      ${focalHtml}
+      <section class="learn-loop">
+        <p class="eyebrow">${ic('layers')} The loop · ${doneCount}/${LEARN_STEPS.length}</p>
+        ${LEARN_STEPS.map((s) => `<div class="learn-step ${steps[s.id] ? 'on' : ''}" data-step="${s.id}"><span class="box">${ic('check')}</span><div class="ls-main"><div class="ls-verb">${esc(s.verb)}</div><div class="ls-body">${mdInline(rung[s.field] || '')}</div></div></div>`).join('')}
+      </section>
+      <section class="learn-complete">
+        ${(ready && !allShipped) ? `<div class="capture-row"><input id="learn-note" placeholder="Link or note for this piece (optional)" autocomplete="off"><button id="learn-done" type="button">Complete Rung ${cur + 1} ${ic('arrow')}</button></div><p class="learn-hint">Banks this as a portfolio piece and ${cur + 1 < rungs.length ? 'opens the next rung' : 'finishes the curriculum'}.</p>` : (!allShipped ? `<p class="learn-hint">${ic('info')} Finish all four steps to complete this rung.</p>` : '')}
+      </section>
+      ${portfolio ? `<section class="learn-portfolio"><p class="eyebrow">${ic('star')} Portfolio · pieces shipped</p><ul class="moved">${portfolio}</ul></section>` : ''}
+    </div>`;
+
+  const toggle = (id) => { const s = getLearn(slug); s.steps[cur] = Object.assign({}, s.steps[cur]); s.steps[cur][id] = !s.steps[cur][id]; setLearn(slug, s); renderLearn(STATE.idx, slug); };
+  document.querySelectorAll('.learn-step[data-step]').forEach((el) => el.addEventListener('click', () => toggle(el.getAttribute('data-step'))));
+  const df = document.querySelector('.lf-do'); if (df) df.addEventListener('click', () => toggle(df.getAttribute('data-do')));
+  const done = document.getElementById('learn-done');
+  if (done) done.addEventListener('click', () => {
+    const s = getLearn(slug); const note = (document.getElementById('learn-note').value || '').trim();
+    if (!(s.portfolio || []).some((x) => x.rung === cur)) { s.portfolio = (s.portfolio || []); s.portfolio.push({ rung: cur, title: rung.title, date: t, note }); }
+    s.current = Math.min(cur + 1, rungs.length - 1); setLearn(slug, s); registerWin(slug); renderLearn(STATE.idx, slug);
+  });
+  document.title = 'Learning · ' + v.short; window.scrollTo(0, 0);
 }
 
 /* ============================================================
@@ -372,7 +461,7 @@ async function route() {
   if (h.startsWith('#/doc/')) { await renderDoc(idx, decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
   else if (h.startsWith('#/v/')) {
     const rest = h.slice('#/v/'.length); const parts = rest.split('/'); const slug = decodeURIComponent(parts[0]);
-    if (parts[1] === 'pipeline') renderPipeline(idx, slug); else await renderWorkspace(idx, slug);
+    if (parts[1] === 'pipeline') renderPipeline(idx, slug); else if (parts[1] === 'learn') await renderLearn(idx, slug); else await renderWorkspace(idx, slug);
     setActiveNav(null);
   }
   else if (h.startsWith('#/knowledge')) { await renderKnowledge(idx); setActiveNav('library'); }
