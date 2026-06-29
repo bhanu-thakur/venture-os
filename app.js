@@ -60,6 +60,7 @@ async function renderMission(idx) {
   const t = todayKey();
   const captures = LS.get('vos:captures', []);
   const pipeCount = LS.get('vos:pipeline', []).length;
+  const leadsInPlay = LS.get('vos:pipeline', []).filter((l) => l.stage !== 'Won').length;
   const wonToday = captures.some((c) => c.date === t);
   const allChecks = LS.get('vos:checks', {});
   const checks = Object.assign({ act: false, reach: false }, allChecks[t] || {});
@@ -83,8 +84,13 @@ async function renderMission(idx) {
 
   app().innerHTML = `
     <div class="mission">
-      <p class="mission-greeting">${greeting()}.${streak.count > 0 ? `<span class="streak">${ic('activity')} ${streak.count}-day streak</span>` : ''}</p>
+      <p class="mission-greeting">${greeting()}, Bhanu.</p>
       <p class="eyebrow">${ic('target')} ${esc(ventureName)}${state ? ` · ${esc(state)}` : ''}</p>
+      <div class="stats standing" style="--n:3">
+        <div class="stat"><div class="big">${streak.count}</div><div class="lbl">Day streak</div><div class="sub">Real progress, daily</div></div>
+        <div class="stat" style="--cat:var(--c3)"><div class="big">${leadsInPlay}</div><div class="lbl">Leads in play</div><div class="sub">In your pipeline</div></div>
+        <div class="stat" style="--cat:var(--c2)"><div class="big">${esc(revCurrent || '₹0')}</div><div class="lbl">of ${esc(revTarget || '—')}</div><div class="sub">Toward your milestone</div></div>
+      </div>
       ${decision ? `<div class="note note--watch">${ic('warn')}<span><b>A decision is waiting.</b> ${mdInline(decision)}</span></div>` : ''}
       <h1 class="mission-win">${mdInline(win)}</h1>
       ${success ? `<p class="mission-meaning">${mdInline(success)}</p>` : ''}
@@ -113,7 +119,6 @@ async function renderMission(idx) {
       </div>
 
       <div class="mission-progress"><p class="eyebrow">${ic('activity')} The journey</p><div class="track statepath">${path}</div></div>
-      ${revBlock}
     </div>`;
 
   const tog = document.querySelector('.ma-toggle');
