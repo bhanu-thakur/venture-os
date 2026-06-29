@@ -24,10 +24,13 @@ Edit local clone (`C:\Users\acer\Documents\GitHub\venture-os`) → verify locall
 1. [x] **Pipeline** (leads you're chasing) — shipped (per-venture).
 2. [x] **Founder HQ + multi-venture workspaces + deliberate switching** — shipped.
 3. [x] **Learning Engine → Skill tracks** (rich rungs: Goal→Lesson→Do actions→Milestone→Review; multiple tracks per venture, technical + soft skills; portfolio + progress) — shipped for all ventures (`#/v/<slug>/learn/<trackId>`).
-4. [ ] Lightweight lead & client tracking inside the lead workflow (log interaction · quote · follow-up).
-5. [ ] Project & deliverable workflow for client execution.
-6. [ ] Weekly review & reflection (playback + one lesson banked).
-7. [ ] Command Palette (jump-anywhere); Capture-to-commit (working layer → canonical repo update).
+4. [x] **Venture app shell** — North-Stories-style sidebar + ⌘K command palette per venture (Slice 1). Modules: Mission · Skill Tracks · Leads · Playbook.
+5. [ ] **Port North Stories' full system** (remaining slices, hybrid storage, per venture):
+   * [ ] Knowledge Bibles (Markdown reference manuals) + knowledge-graph backlinks.
+   * [ ] Creative Brain (capture journal) + Creative Director (daily eye-training drills).
+   * [ ] Business Dashboard (revenue · EHR · LTV) + Agency Portfolio (case studies).
+   * [ ] Richer Leads/CRM (follow-ups, quotes, stages) building on the Pipeline.
+6. [ ] Capture-to-commit (working layer → paste-ready canonical repo update).
 
 ## Blockers
 * None.

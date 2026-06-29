@@ -7,6 +7,13 @@
 
 ---
 
+## 2026-06-30 (Venture app shell — North-Stories-style sidebar + command palette, per venture)
+* **Each venture is now its own app** (modelled on North Stories OS, decisions: hybrid storage — Markdown-canonical content + working-layer state — and per-venture structure). Entering a venture opens a **left sidebar** of grouped modules (Daily: Mission · Skill Tracks; Business: Leads; Library: Playbook) with a full-width layout; HQ stays the company home (its topbar hides inside a venture). Mobile gets a bottom nav.
+* **⌘K command palette, scoped to the venture** — jump to any module, skill track, playbook doc, or lead. Arrow-key + Enter navigation; click or Esc to dismiss.
+* **Existing features re-homed as modules** (no data loss): Mission (the cockpit), Skill Tracks (the rung system), Leads (the per-venture pipeline), Playbook (the venture's reference docs). Routing: `#/v/<slug>/<module>` with `learn`→skills and `pipeline`→leads aliases preserved.
+* This is **Slice 1** of porting North Stories' full system. Next slices: Knowledge Bibles (+ backlinks), Creative Brain (capture journal), Creative Director (eye-training), Business Dashboard + Portfolio.
+* `sw` cache `v14→v15`. Verified: `app.js` syntax-checked; shell + palette logic checked in isolation.
+
 ## 2026-06-30 (Skill tracks — the rung system, for every venture)
 * **Every venture now has the rung system, with multiple skill tracks** (technical *and* soft skills). Hospitality Media: **Food Cinematography** + **Closing Hotels** (negotiation/sales). Wedding Films: **Cinematic Editing** + **Cinematic Shooting**. A new **Skills** section on each workspace lists tracks with live progress and the literal next action; a skills chooser lives at `#/v/<slug>/learn`, each track at `#/v/<slug>/learn/<trackId>`.
 * **Rungs are richer and more actionable.** Each rung now carries a **Goal**, a short **Lesson**, a list of concrete real-world **Do** actions (each individually checkable — the "get off your seat" core), a **Milestone** proof piece, and a **Review**. A **Do this now** card surfaces the single next action verbatim. Completing every action + the milestone banks a portfolio piece, registers a streak day, and opens the next rung. More rungs per track (5–6) and an explicit milestone each.

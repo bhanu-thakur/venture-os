@@ -231,7 +231,7 @@ async function renderWorkspace(idx, slug) {
   const detail = [s.why ? `<p><b>Why it matters.</b> ${mdInline(s.why)}</p>` : '', s.proof ? `<p><b>The proof you’re after.</b> ${mdInline(s.proof)}</p>` : ''].join('');
   const typeIcon = TYPE_ICON[v.type] || 'layers';
 
-  app().innerHTML = `
+  mountVenture(idx, slug, 'mission', `
     <div class="ws">
       <div class="ws-bar">
         <a class="ws-back" href="#/">${ic('arrow')} HQ</a>
@@ -275,7 +275,7 @@ async function renderWorkspace(idx, slug) {
 
       <div class="mission-progress"><p class="eyebrow">${ic('activity')} The journey</p><div class="track statepath">${statePath(s.state)}</div></div>
       ${revBlockHtml(s.revTarget, s.revCurrent)}
-    </div>`;
+    </div>`);
 
   const tog = document.querySelector('.ma-toggle');
   if (tog) tog.addEventListener('click', () => { const o = tog.getAttribute('aria-expanded') === 'true'; tog.setAttribute('aria-expanded', String(!o)); tog.innerHTML = (o ? 'Why this matters ' : 'Hide ') + ic('chevron'); });
@@ -354,16 +354,13 @@ async function renderSkills(idx, slug) {
   ensureLearnMigrated(slug, tracks[0].id);
   const sums = await Promise.all(tracks.map((t) => trackSummary(slug, t)));
   const cards = sums.map((s) => { const pct = s.total ? Math.round(s.shipped / s.total * 100) : 0; return `<a class="skill" href="#/v/${esc(slug)}/learn/${esc(s.id)}" style="--vc:var(--${v.accent || 'primary'})"><div class="sk-top">${ic(s.icon || 'layers')} ${esc(s.title)}</div>${s.desc ? `<div class="sk-desc">${esc(s.desc)}</div>` : ''}<div class="sk-meta">${s.allDone ? 'Complete' : `Rung ${s.current + 1} of ${s.total}`} · ${s.shipped} shipped</div><div class="sk-bar"><i style="width:${pct}%"></i></div><div class="sk-next">${ic('arrow')} ${esc(s.nextText)}</div></a>`; }).join('');
-  app().innerHTML = `
-    <div class="ws">
-      <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a></div>
+  mountVenture(idx, slug, 'skills', `
       <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
         <p class="eyebrow">${ic('bulb')} Skills · ${esc(v.short)}</p>
         <h1 class="ws-name">Learn by doing</h1>
         <p class="ws-tag">Pick a skill. Each one is a ladder of real-world actions — climb a rung today.</p>
       </header>
-      <div class="skillgrid big">${cards}</div>
-    </div>`;
+      <div class="skillgrid big">${cards}</div>`);
   document.title = 'Skills · ' + v.short; window.scrollTo(0, 0);
 }
 
@@ -392,7 +389,7 @@ async function renderTrack(idx, slug, tid) {
   const steplist = rung.steps.map((s, i) => `<div class="learn-step ${dr.do[i] ? 'on' : ''}" data-do="do" data-i="${i}"><span class="box">${ic('check')}</span><div class="ls-main"><div class="ls-body">${mdInline(s)}</div></div></div>`).join('');
   const msRow = `<div class="learn-step ms ${dr.ms ? 'on' : ''}" data-do="ms"><span class="box">${ic('flag')}</span><div class="ls-main"><div class="ls-verb">Milestone</div><div class="ls-body">${mdInline(rung.milestone || '')}</div></div></div>`;
 
-  app().innerHTML = `
+  mountVenture(idx, slug, 'skills', `
     <div class="ws">
       <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}/learn">${ic('arrow')} ${esc(t.title)}</a><span class="pill pill--brand">Rung ${cur + 1} of ${rungs.length}</span></div>
       <header class="ws-head" style="--vc:var(--${v.accent || 'primary'})">
@@ -412,7 +409,7 @@ async function renderTrack(idx, slug, tid) {
         ${(ready && !allShipped) ? `<div class="capture-row"><input id="learn-note" placeholder="Link or note for this piece (optional)" autocomplete="off"><button id="learn-done" type="button">Complete Rung ${cur + 1} ${ic('arrow')}</button></div><p class="learn-hint">Banks this as a portfolio piece and ${cur + 1 < rungs.length ? 'opens the next rung' : 'finishes the track'}.</p>` : (!allShipped ? `<p class="learn-hint">${ic('info')} Do every action and the milestone to complete this rung.</p>` : '')}
       </section>
       ${portfolio ? `<section class="learn-portfolio"><p class="eyebrow">${ic('star')} Portfolio · milestones hit</p><ul class="moved">${portfolio}</ul></section>` : ''}
-    </div>`;
+    </div>`);
 
   const toggle = (type, i) => {
     const s = getTrackState(slug, tid); const d = Object.assign({ do: {}, ms: false }, s.done[cur]); d.do = Object.assign({}, d.do);
@@ -450,9 +447,8 @@ function renderPipeline(idx, slug) {
       </div>`).join('');
     return `<section><div class="sec-head"><p class="eyebrow">${counts[si]} · ${esc(st)}</p></div><article class="card">${rows || `<p class="lead-empty">Nothing here yet.</p>`}</article></section>`;
   }).join('');
-  app().innerHTML = `
-    <div class="ws-bar"><a class="ws-back" href="#/v/${esc(slug)}">${ic('arrow')} ${esc(v.short)}</a></div>
-    <header class="hero"><p class="eyebrow">${ic('cash')} Pipeline · ${esc(v.short)}</p><h1>Who you’re chasing</h1><p class="lede">Leads for this venture only — from first contact to paid. Move one forward every day.</p></header>
+  mountVenture(idx, slug, 'leads', `
+    <header class="hero" style="padding-top:8px"><p class="eyebrow">${ic('users')} Leads · ${esc(v.short)}</p><h1>Who you’re chasing</h1><p class="lede">Leads for this venture only — from first contact to paid. Move one forward every day.</p></header>
     <div class="stats" style="--n:3">${stats}</div>
     <article class="card">
       <div class="card-title"><span class="ico">${ic('plus')}</span><div><h3>Add a lead</h3></div></div>
@@ -463,7 +459,7 @@ function renderPipeline(idx, slug) {
         <button id="pl-add" type="button">Add to pipeline</button>
       </div>
     </article>
-    ${sections}`;
+    ${sections}`);
   const add = document.getElementById('pl-add');
   if (add) add.addEventListener('click', () => {
     const name = (document.getElementById('pl-name').value || '').trim(); if (!name) { document.getElementById('pl-name').focus(); return; }
@@ -506,14 +502,92 @@ async function renderDoc(idx, path) {
   } catch (e) { app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>That page isn’t available.</span></div></article>`; }
 }
 
+/* ============================================================
+   VENTURE APP SHELL — each venture is its own North-Stories-style
+   app: a left sidebar of modules + a command palette. (Slice 1.)
+   ============================================================ */
+const VGROUPS = ['Daily', 'Business', 'Library'];
+function ventureModules(v) {
+  return [
+    { id: 'mission', name: 'Mission', icon: 'target', group: 'Daily' },
+    { id: 'skills', name: 'Skill Tracks', icon: 'bulb', group: 'Daily' },
+    { id: 'leads', name: 'Leads', icon: 'users', group: 'Business' },
+    { id: 'playbook', name: 'Playbook', icon: 'book', group: 'Library' }
+  ];
+}
+function ventureChrome(idx, slug, activeMod, content) {
+  const v = ventureBySlug(idx, slug) || { short: slug, accent: 'primary' };
+  const mods = ventureModules(v), byGroup = {};
+  mods.forEach((m) => { (byGroup[m.group] = byGroup[m.group] || []).push(m); });
+  let nav = '';
+  VGROUPS.forEach((g) => { const items = byGroup[g]; if (!items) return; nav += `<div class="vnavgroup">${esc(g)}</div>` + items.map((m) => `<a class="vnavlink ${m.id === activeMod ? 'active' : ''}" href="#/v/${esc(slug)}/${m.id}">${ic(m.icon)}<span>${esc(m.name)}</span></a>`).join(''); });
+  const side = `<aside class="vside">
+      <a class="vbrand" href="#/"><span class="vmark" style="background:var(--${v.accent || 'primary'})">${ic('grid')}</span><span class="vbt">${esc(v.short)}<small>${esc(v.type || 'venture')}</small></span></a>
+      <a class="vhq" href="#/">${ic('arrow')} Company HQ</a>
+      <button class="vseek" type="button" data-pal>${ic('search')}<span>Search</span><kbd>⌘K</kbd></button>
+      <nav class="vnav">${nav}</nav>
+    </aside>`;
+  const main = `<main class="vmain"><div class="vmwrap">${content}</div></main>`;
+  const mob = mods.map((m) => `<a class="${m.id === activeMod ? 'active' : ''}" href="#/v/${esc(slug)}/${m.id}">${ic(m.icon)}<span>${esc(m.name.split(' ')[0])}</span></a>`).join('');
+  return `<div class="vshell">${side}${main}</div><nav class="vmob">${mob}</nav>`;
+}
+function mountVenture(idx, slug, mod, content) {
+  document.body.classList.add('in-venture');
+  app().innerHTML = ventureChrome(idx, slug, mod, content);
+  document.querySelectorAll('[data-pal]').forEach((b) => b.addEventListener('click', () => openPalette(STATE.idx, slug)));
+}
+
+/* ---- command palette (scoped to the active venture) ---- */
+let palState = { items: [], sel: 0, slug: null };
+function paletteIndex(idx, slug) {
+  const v = ventureBySlug(idx, slug) || {}; const out = [];
+  ventureModules(v).forEach((m) => out.push({ title: m.name, kind: 'module', go: `#/v/${slug}/${m.id}`, icon: m.icon }));
+  (v.tracks || []).forEach((t) => out.push({ title: t.title, kind: 'skill track', go: `#/v/${slug}/skills/${t.id}`, icon: t.icon || 'bulb' }));
+  (v.modules || []).forEach((d) => out.push({ title: d.title, kind: 'playbook', go: `#/doc/${encodeURIComponent(d.path)}`, icon: d.icon || 'book' }));
+  (LS.get(vkey(slug, 'pipeline'), []) || []).forEach((l) => out.push({ title: l.name, kind: 'lead', go: `#/v/${slug}/leads`, icon: 'users' }));
+  return out;
+}
+function openPalette(idx, slug) { palState.slug = slug; const bg = document.getElementById('vpalbg'); if (!bg) return; bg.classList.add('on'); const inp = document.getElementById('vpalin'); inp.value = ''; palFilter(idx, slug, ''); inp.focus(); }
+function closePalette() { const bg = document.getElementById('vpalbg'); if (bg) bg.classList.remove('on'); }
+function palFilter(idx, slug, q) { q = (q || '').toLowerCase().trim(); const all = paletteIndex(idx, slug); palState.items = !q ? all.slice(0, 8) : all.filter((x) => (x.title + ' ' + x.kind).toLowerCase().indexOf(q) > -1).slice(0, 40); palState.sel = 0; palDraw(); }
+function palDraw() { const res = document.getElementById('vpalres'); if (!res) return; if (!palState.items.length) { res.innerHTML = `<div class="pal-item" style="color:var(--ink-faint)">No matches</div>`; return; } res.innerHTML = palState.items.map((x, i) => `<div class="pal-item ${i === palState.sel ? 'sel' : ''}" data-pgo="${esc(x.go)}">${ic(x.icon || 'arrow')}<span>${esc(x.title)}</span><span class="pk">${esc(x.kind)}</span></div>`).join(''); }
+function currentVentureSlug() { const h = location.hash || ''; if (!h.startsWith('#/v/')) return null; return decodeURIComponent(h.slice('#/v/'.length).split('/')[0]); }
+function initPalette() {
+  const bg = document.getElementById('vpalbg'), inp = document.getElementById('vpalin'), res = document.getElementById('vpalres'); if (!bg || !inp || !res) return;
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { const slug = currentVentureSlug(); if (slug) { e.preventDefault(); openPalette(STATE.idx, slug); } }
+    else if (e.key === 'Escape') closePalette();
+    else if (bg.classList.contains('on')) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); palState.sel = Math.min(palState.sel + 1, palState.items.length - 1); palDraw(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); palState.sel = Math.max(palState.sel - 1, 0); palDraw(); }
+      else if (e.key === 'Enter') { const x = palState.items[palState.sel]; if (x) { closePalette(); location.hash = x.go; } }
+    }
+  });
+  inp.addEventListener('input', () => palFilter(STATE.idx, palState.slug, inp.value));
+  res.addEventListener('click', (e) => { const it = e.target.closest('[data-pgo]'); if (it) { closePalette(); location.hash = it.getAttribute('data-pgo'); } });
+  bg.addEventListener('click', (e) => { if (e.target === bg) closePalette(); });
+}
+
+/* ---- Playbook module: the venture's reference docs ---- */
+function renderPlaybook(idx, slug) {
+  const v = ventureBySlug(idx, slug); if (!v) { document.body.classList.remove('in-venture'); app().innerHTML = `<article class="card"><div class="note note--warn">${ic('warn')}<span>Unknown venture. <a href="#/">HQ</a>.</span></div></article>`; return; }
+  const mods = v.modules || [];
+  const tiles = mods.length ? mods.map((m) => `<a class="tile" href="#/doc/${encodeURIComponent(m.path)}" style="--dc:var(--${m.accent || v.accent || 'primary'})"><div class="tn">${ic(m.icon || 'book')} OPEN</div><div class="tt">${esc(m.title)}</div>${m.desc ? `<div class="td">${esc(m.desc)}</div>` : ''}<div class="go">Open ${ic('arrow')}</div></a>`).join('') : `<p class="lead">No playbook docs yet.</p>`;
+  const content = `<header class="ws-head" style="--vc:var(--${v.accent || 'primary'})"><p class="eyebrow">${ic('book')} Playbook · ${esc(v.short)}</p><h1 class="ws-name">The playbook</h1><p class="ws-tag">Your venture’s strategy & reference docs.</p></header><div class="cardgrid" style="margin-top:24px">${tiles}</div>`;
+  mountVenture(idx, slug, 'playbook', content);
+  document.title = 'Playbook · ' + v.short; window.scrollTo(0, 0);
+}
+
 function setActiveNav(name) { document.querySelectorAll('.topbar .nav a[data-nav]').forEach((a) => a.classList.toggle('active', a.getAttribute('data-nav') === name)); }
 async function route() {
   const h = location.hash || '#/'; const idx = await loadIndex();
+  if (!h.startsWith('#/v/')) document.body.classList.remove('in-venture');
   if (h.startsWith('#/doc/')) { await renderDoc(idx, decodeURIComponent(h.slice('#/doc/'.length))); setActiveNav(null); }
   else if (h.startsWith('#/v/')) {
-    const rest = h.slice('#/v/'.length); const parts = rest.split('/'); const slug = decodeURIComponent(parts[0]);
-    if (parts[1] === 'pipeline') renderPipeline(idx, slug);
-    else if (parts[1] === 'learn') { if (parts[2]) await renderTrack(idx, slug, decodeURIComponent(parts[2])); else await renderSkills(idx, slug); }
+    const rest = h.slice('#/v/'.length); const parts = rest.split('/'); const slug = decodeURIComponent(parts[0]); const mod = parts[1]; const sub = parts[2] ? decodeURIComponent(parts[2]) : null;
+    if (mod === 'pipeline' || mod === 'leads') renderPipeline(idx, slug);
+    else if (mod === 'learn' || mod === 'skills') { if (sub) await renderTrack(idx, slug, sub); else await renderSkills(idx, slug); }
+    else if (mod === 'playbook') renderPlaybook(idx, slug);
     else await renderWorkspace(idx, slug);
     setActiveNav(null);
   }
@@ -524,4 +598,5 @@ window.addEventListener('hashchange', route);
 function showUpdate() { if (document.getElementById('vos-update')) return; const b = document.createElement('div'); b.id = 'vos-update'; b.className = 'note note--you'; b.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:100;max-width:560px;margin:0 auto;cursor:pointer;box-shadow:var(--shadow)'; b.innerHTML = '<svg class="ic"><use href="#i-info"/></svg><span><b>Update available.</b> Tap to refresh.</span>'; b.onclick = () => location.reload(); document.body.appendChild(b); }
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; if (nw) nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(); }); }); }).catch(() => {}); }); }
 migrate();
+initPalette();
 route();
