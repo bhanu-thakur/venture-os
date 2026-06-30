@@ -7,6 +7,13 @@
 
 ---
 
+## 2026-07-01 (Skill Tracks rebuilt for the "ship 7 in 7" execution sprint — content only, OS frozen)
+* **All four Skill Tracks rewritten as an elite, deliberate-practice apprenticeship**, not a course: `food-cinematography.md` (5→6 rungs), `closing-hotels.md` (5 rungs, re-sequenced), `shooting.md` (5 rungs, re-sequenced), `curriculum.md` (6 rungs, re-sequenced). Every rung now carries Goal/Lesson/Do/Milestone/Review (parsed, unchanged contract) plus mentor-only fields appended around them — Why this matters, What to observe, Success criteria, Common mistakes, Stretch challenge — which `parseTrack` ignores by design, so the runtime is untouched. No app.js changes; the product stays frozen per this week's operating rule.
+* **`NEXT.md` restructured** around a 7-day, 7-deliverable execution plan (3 hospitality reels, 1 cinematic sequence, 2 wedding-style edits, 1 polished portfolio piece) with a day-by-day schedule across both ventures' tracks, plus a standing "while you wait" bench so momentum never stalls on someone else's reply (rule carried into `closing-hotels.md` and `practice.md` too). The prior OS build-order backlog is preserved at the bottom, marked paused for the sprint.
+* **`references.md` rebuilt** as a day-by-day assignment table mapping eight named reference points (The Quirky, Ramit Batra, House on the Clouds, White in Revery, Iris Wedding Films, Daniel Schaffer, Bollywood high-end wedding cinematography, Hollywood/luxury-commercial montage craft) to the exact rung each one teaches, each with a specific analytical question — study-by-reconstruction, not by admiration.
+* Both `mission.md` files updated to point at Day 1 of the sprint and link to `/NEXT.md`; Mission's parsed fields (Today's Objective, Success Today, Bottleneck, Highest-Leverage Next Action, Proof of Execution Needed, Decision Needed) left structurally unchanged. `practice.md` re-pointed at the new rung numbering and the while-you-wait bench.
+* No `sw` cache bump — no static asset or app logic changed, only venture/learning Markdown content.
+
 ## 2026-06-30 (Venture app shell — North-Stories-style sidebar + command palette, per venture)
 * **Each venture is now its own app** (modelled on North Stories OS, decisions: hybrid storage — Markdown-canonical content + working-layer state — and per-venture structure). Entering a venture opens a **left sidebar** of grouped modules (Daily: Mission · Skill Tracks; Business: Leads; Library: Playbook) with a full-width layout; HQ stays the company home (its topbar hides inside a venture). Mobile gets a bottom nav.
 * **⌘K command palette, scoped to the venture** — jump to any module, skill track, playbook doc, or lead. Arrow-key + Enter navigation; click or Esc to dismiss.
